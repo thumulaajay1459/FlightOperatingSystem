@@ -1,0 +1,20 @@
+# .NET build outputs
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+.vs/
+
+# Logs
+*.log
+
+# Environment files
+.env
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# Node
+node_modules/
