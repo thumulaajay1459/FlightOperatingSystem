@@ -1,0 +1,730 @@
+<div class="dashboard-container">
+  <!-- Modern Top Navigation -->
+  <nav class="dashboard-nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-brand">
+      <span class="brand-icon" aria-hidden="true">✈️</span>
+      <span class="brand-text">SkyWings</span>
+    </div>
+    <div class="nav-user">
+      <div class="user-greeting">
+        <span class="greeting-text">Welcome back,</span>
+        <span class="user-name">{{ user?.firstName || 'User' }}</span>
+      </div>
+      <button class="logout-btn" (click)="logout()" aria-label="Logout from account">
+        <span class="btn-icon" aria-hidden="true">🚪</span>
+        <span>Logout</span>
+      </button>
+    </div>
+  </nav>
+  <div class="dashboard-content">
+    <!-- Modern Sidebar with Icons -->
+    <aside class="sidebar" role="complementary" aria-label="Dashboard navigation">
+      <nav class="sidebar-nav">
+        <button 
+          class="sidebar-btn" 
+          [class.active]="activeTab === 'search'" 
+          (click)="activeTab = 'search'"
+          aria-label="Search flights"
+          [attr.aria-current]="activeTab === 'search' ? 'page' : null">
+          <span class="sidebar-icon" aria-hidden="true">🔍</span>
+          <span class="sidebar-text">Search Flights</span>
+        </button>
+        <button 
+          class="sidebar-btn" 
+          [class.active]="activeTab === 'bookings'" 
+          (click)="activeTab = 'bookings'"
+          aria-label="View my bookings"
+          [attr.aria-current]="activeTab === 'bookings' ? 'page' : null">
+          <span class="sidebar-icon" aria-hidden="true">🎫</span>
+          <span class="sidebar-text">My Bookings</span>
+        </button>
+        <button 
+          class="sidebar-btn" 
+          [class.active]="activeTab === 'profile'" 
+          (click)="activeTab = 'profile'"
+          aria-label="View profile"
+          [attr.aria-current]="activeTab === 'profile' ? 'page' : null">
+          <span class="sidebar-icon" aria-hidden="true">👤</span>
+          <span class="sidebar-text">Profile</span>
+        </button>
+        <button 
+          class="sidebar-btn" 
+          [class.active]="activeTab === 'account'" 
+          (click)="activeTab = 'account'"
+          aria-label="Account settings"
+          [attr.aria-current]="activeTab === 'account' ? 'page' : null">
+          <span class="sidebar-icon" aria-hidden="true">⚙️</span>
+          <span class="sidebar-text">Account</span>
+        </button>
+        <button 
+          class="sidebar-btn" 
+          [class.active]="activeTab === 'password'" 
+          (click)="activeTab = 'password'"
+          aria-label="Change password"
+          [attr.aria-current]="activeTab === 'password' ? 'page' : null">
+          <span class="sidebar-icon" aria-hidden="true">🔒</span>
+          <span class="sidebar-text">Password</span>
+        </button>
+      </nav>
+      <button class="chat-btn" (click)="goToChat()" aria-label="Open AI assistant">
+        <span class="btn-icon" aria-hidden="true">💬</span>
+        <span>AI Assistant</span>
+      </button>
+    </aside>
+    <main class="main-content" role="main">
+      <!-- Alert Messages -->
+      <div *ngIf="errorMessage" class="alert alert-error" role="alert" aria-live="assertive">
+        <span class="alert-icon" aria-hidden="true">⚠️</span>
+        <span class="alert-text">{{ errorMessage }}</span>
+      </div>
+      <div *ngIf="successMessage" class="alert alert-success" role="alert" aria-live="polite">
+        <span class="alert-icon" aria-hidden="true">✅</span>
+        <span class="alert-text">{{ successMessage }}</span>
+      </div>
+      <!-- Search Flights Tab -->
+      <div *ngIf="activeTab === 'search'" class="tab-content">
+        <div class="tab-header">
+          <h2 class="tab-title">Search Flights</h2>
+          <p class="tab-subtitle">Find the perfect flight for your journey</p>
+        </div>
+        
+        <!-- Modern Segmented Control for Trip Type -->
+        <div class="trip-type-selector" role="radiogroup" aria-label="Trip type selection">
+          <label class="trip-type-option" [class.active]="tripType === 'OneWay'">
+            <input 
+              type="radio" 
+              [(ngModel)]="tripType" 
+              name="tripType" 
+              value="OneWay"
+              aria-label="One way trip">
+            <span class="option-icon" aria-hidden="true">➡️</span>
+            <span class="option-text">One Way</span>
+          </label>
+          <label class="trip-type-option" [class.active]="tripType === 'RoundTrip'">
+            <input 
+              type="radio" 
+              [(ngModel)]="tripType" 
+              name="tripType" 
+              value="RoundTrip"
+              aria-label="Round trip">
+            <span class="option-icon" aria-hidden="true">🔄</span>
+            <span class="option-text">Round Trip</span>
+          </label>
+        </div>
+        <!-- Modern Search Form -->
+        <form (ngSubmit)="searchFlights()" class="search-form" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="origin" class="form-label">
+                <span class="label-icon" aria-hidden="true">🛫</span>
+                <span>From</span>
+              </label>
+              <input 
+                type="text" 
+                id="origin"
+                [(ngModel)]="searchData.origin" 
+                name="origin" 
+                list="originAirports" 
+                placeholder="Select origin city" 
+                autocomplete="off" 
+                required
+                class="form-input"
+                aria-required="true">
+              <datalist id="originAirports">
+                <option *ngFor="let airport of airports" [value]="airport.city">{{ airport.city }} ({{ airport.code }}) - {{ airport.name }}</option>
+              </datalist>
+            </div>
+            
+            <div class="form-group">
+              <label for="destination" class="form-label">
+                <span class="label-icon" aria-hidden="true">🛬</span>
+                <span>To</span>
+              </label>
+              <input 
+                type="text" 
+                id="destination"
+                [(ngModel)]="searchData.destination" 
+                name="destination" 
+                list="destinationAirports" 
+                placeholder="Select destination city" 
+                autocomplete="off" 
+                required
+                class="form-input"
+                aria-required="true">
+              <datalist id="destinationAirports">
+                <option *ngFor="let airport of airports" [value]="airport.city">{{ airport.city }} ({{ airport.code }}) - {{ airport.name }}</option>
+              </datalist>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="departureDate" class="form-label">
+                <span class="label-icon" aria-hidden="true">📅</span>
+                <span>Departure Date</span>
+                <span class="label-optional">(Optional)</span>
+              </label>
+              <input 
+                type="date" 
+                id="departureDate"
+                [(ngModel)]="searchData.departureDate" 
+                name="departureDate" 
+                [min]="minDate"
+                class="form-input">
+            </div>
+            
+            <div class="form-group" *ngIf="tripType === 'RoundTrip'">
+              <label for="returnDate" class="form-label">
+                <span class="label-icon" aria-hidden="true">📅</span>
+                <span>Return Date</span>
+                <span class="label-optional">(Optional)</span>
+              </label>
+              <input 
+                type="date" 
+                id="returnDate"
+                [(ngModel)]="searchData.returnDate" 
+                name="returnDate" 
+                [min]="searchData.departureDate || minDate"
+                class="form-input">
+            </div>
+          </div>
+          <!-- Passenger Selection -->
+          <div class="passengers-section">
+            <label class="section-label">
+              <span class="label-icon" aria-hidden="true">👥</span>
+              <span>Passengers</span>
+            </label>
+            <div class="passenger-grid">
+              <div class="passenger-card">
+                <div class="passenger-info">
+                  <span class="passenger-icon" aria-hidden="true">👨</span>
+                  <div class="passenger-details">
+                    <span class="passenger-type">Adults</span>
+                    <span class="passenger-age">12+ years</span>
+                  </div>
+                </div>
+                <div class="counter">
+                  <button 
+                    type="button" 
+                    class="counter-btn counter-minus"
+                    (click)="passengers.adults = passengers.adults > 1 ? passengers.adults - 1 : 1"
+                    [disabled]="passengers.adults <= 1"
+                    aria-label="Decrease adults count">
+                    <span aria-hidden="true">−</span>
+                  </button>
+                  <span class="counter-value" aria-live="polite">{{ passengers.adults }}</span>
+                  <button 
+                    type="button" 
+                    class="counter-btn counter-plus"
+                    (click)="passengers.adults = passengers.adults + 1"
+                    aria-label="Increase adults count">
+                    <span aria-hidden="true">+</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="passenger-card">
+                <div class="passenger-info">
+                  <span class="passenger-icon" aria-hidden="true">🧒</span>
+                  <div class="passenger-details">
+                    <span class="passenger-type">Children</span>
+                    <span class="passenger-age">2-11 years</span>
+                  </div>
+                </div>
+                <div class="counter">
+                  <button 
+                    type="button" 
+                    class="counter-btn counter-minus"
+                    (click)="passengers.children = passengers.children > 0 ? passengers.children - 1 : 0"
+                    [disabled]="passengers.children <= 0"
+                    aria-label="Decrease children count">
+                    <span aria-hidden="true">−</span>
+                  </button>
+                  <span class="counter-value" aria-live="polite">{{ passengers.children }}</span>
+                  <button 
+                    type="button" 
+                    class="counter-btn counter-plus"
+                    (click)="passengers.children = passengers.children + 1"
+                    aria-label="Increase children count">
+                    <span aria-hidden="true">+</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="passenger-card">
+                <div class="passenger-info">
+                  <span class="passenger-icon" aria-hidden="true">👶</span>
+                  <div class="passenger-details">
+                    <span class="passenger-type">Infants</span>
+                    <span class="passenger-age">0-2 years</span>
+                  </div>
+                </div>
+                <div class="counter">
+                  <button 
+                    type="button" 
+                    class="counter-btn counter-minus"
+                    (click)="passengers.infants = passengers.infants > 0 ? passengers.infants - 1 : 0"
+                    [disabled]="passengers.infants <= 0"
+                    aria-label="Decrease infants count">
+                    <span aria-hidden="true">−</span>
+                  </button>
+                  <span class="counter-value" aria-live="polite">{{ passengers.infants }}</span>
+                  <button 
+                    type="button" 
+                    class="counter-btn counter-plus"
+                    (click)="passengers.infants = passengers.infants + 1"
+                    aria-label="Increase infants count">
+                    <span aria-hidden="true">+</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn-primary btn-large" aria-label="Search for flights">
+            <span class="btn-icon" aria-hidden="true">🔍</span>
+            <span>Search Flights</span>
+          </button>
+        </form>
+        <!-- Search Results -->
+        <div *ngIf="showResults" class="results-section">
+          <div class="results-header">
+            <h3 class="results-title">
+              <span class="title-icon" aria-hidden="true">✈️</span>
+              <span>Outbound Flights</span>
+            </h3>
+            <span *ngIf="!isLoading && flights.length > 0" class="results-count">{{ flights.length }} flights found</span>
+          </div>
+          
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <p class="loading-text">Searching for the best flights...</p>
+          </div>
+          
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && flights.length === 0 && !errorMessage" class="empty-state">
+            <div class="empty-icon" aria-hidden="true">🔍</div>
+            <h4 class="empty-title">No flights found</h4>
+            <p class="empty-text">Try adjusting your search criteria or dates</p>
+          </div>
+          <!-- Flight Cards -->
+          <div *ngFor="let flight of flights" class="flight-card">
+            <div class="flight-card-content">
+              <div class="flight-header">
+                <div class="airline-info">
+                  <div class="flight-number">{{ flight.flightNumber }}</div>
+                  <div class="aircraft-type">{{ flight.aircraft }}</div>
+                </div>
+                <div class="flight-badge" aria-label="Flight duration">{{ flight.durationHours }}h</div>
+              </div>
+              
+              <div class="flight-route-visual">
+                <div class="route-point">
+                  <div class="city-code">{{ flight.originCode }}</div>
+                  <div class="city-name">{{ flight.origin }}</div>
+                  <div class="time">{{ flight.departureTime | date:'shortTime' }}</div>
+                </div>
+                
+                <div class="route-line" aria-hidden="true">
+                  <div class="plane-icon">✈</div>
+                  <div class="line"></div>
+                </div>
+                
+                <div class="route-point">
+                  <div class="city-code">{{ flight.destinationCode }}</div>
+                  <div class="city-name">{{ flight.destination }}</div>
+                  <div class="time">{{ flight.arrivalTime | date:'shortTime' }}</div>
+                </div>
+              </div>
+              
+              <div class="flight-footer">
+                <div class="seats-info" [attr.aria-label]="flight.availableSeats + ' seats available'">
+                  <span class="seats-icon" aria-hidden="true">💺</span>
+                  <span class="seats-text">{{ flight.availableSeats }} seats left</span>
+                </div>
+                <div class="date-info">{{ flight.departureTime | date:'mediumDate' }}</div>
+              </div>
+            </div>
+            
+            <div class="flight-card-action">
+              <div class="price-section">
+                <div class="price-label">Total Price</div>
+                <div class="price-amount">₹{{ (flight.economyPrice || 0) * getTotalPassengers() | number:'1.0-0' }}</div>
+                <div class="price-per-person">₹{{ flight.economyPrice | number:'1.0-0' }} per person</div>
+              </div>
+              <button 
+                class="btn-book" 
+                (click)="selectOutbound(flight)" 
+                [disabled]="selectedOutboundFlight === flight"
+                [attr.aria-label]="tripType === 'RoundTrip' ? (selectedOutboundFlight === flight ? 'Flight selected' : 'Select this flight') : 'Book this flight now'">
+                <span *ngIf="selectedOutboundFlight === flight" aria-hidden="true">✓</span>
+                {{ tripType === 'RoundTrip' ? (selectedOutboundFlight === flight ? 'Selected' : 'Select Flight') : 'Book Now' }}
+              </button>
+            </div>
+          </div>
+          
+          <!-- Return Flights Section -->
+          <div *ngIf="tripType === 'RoundTrip' && returnFlights.length > 0" class="return-flights-section">
+            <div class="results-header">
+              <h3 class="results-title">
+                <span class="title-icon" aria-hidden="true">🔙</span>
+                <span>Return Flights</span>
+              </h3>
+              <span class="results-count">{{ returnFlights.length }} flights found</span>
+            </div>
+            
+            <div *ngIf="!selectedOutboundFlight" class="info-banner" role="alert">
+              <span class="banner-icon" aria-hidden="true">ℹ️</span>
+              <span>Please select an outbound flight first</span>
+            </div>
+            <div *ngFor="let flight of returnFlights" class="flight-card">
+              <div class="flight-card-content">
+                <div class="flight-header">
+                  <div class="airline-info">
+                    <div class="flight-number">{{ flight.flightNumber }}</div>
+                    <div class="aircraft-type">{{ flight.aircraft }}</div>
+                  </div>
+                  <div class="flight-badge return-badge" aria-label="Flight duration">{{ flight.durationHours }}h</div>
+                </div>
+                
+                <div class="flight-route-visual">
+                  <div class="route-point">
+                    <div class="city-code">{{ flight.originCode }}</div>
+                    <div class="city-name">{{ flight.origin }}</div>
+                    <div class="time">{{ flight.departureTime | date:'shortTime' }}</div>
+                  </div>
+                  
+                  <div class="route-line" aria-hidden="true">
+                    <div class="plane-icon">✈</div>
+                    <div class="line"></div>
+                  </div>
+                  
+                  <div class="route-point">
+                    <div class="city-code">{{ flight.destinationCode }}</div>
+                    <div class="city-name">{{ flight.destination }}</div>
+                    <div class="time">{{ flight.arrivalTime | date:'shortTime' }}</div>
+                  </div>
+                </div>
+                
+                <div class="flight-footer">
+                  <div class="seats-info" [attr.aria-label]="flight.availableSeats + ' seats available'">
+                    <span class="seats-icon" aria-hidden="true">💺</span>
+                    <span class="seats-text">{{ flight.availableSeats }} seats left</span>
+                  </div>
+                  <div class="date-info">{{ flight.departureTime | date:'mediumDate' }}</div>
+                </div>
+              </div>
+              
+              <div class="flight-card-action">
+                <div class="price-section">
+                  <div class="price-label">Total Price</div>
+                  <div class="price-amount">₹{{ (flight.economyPrice || 0) * getTotalPassengers() | number:'1.0-0' }}</div>
+                  <div class="price-per-person">₹{{ flight.economyPrice | number:'1.0-0' }} per person</div>
+                </div>
+                <button 
+                  class="btn-book" 
+                  (click)="selectFlight(flight, true)" 
+                  [disabled]="!selectedOutboundFlight"
+                  aria-label="Book this return flight">
+                  Book Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- My Bookings Tab -->
+      <div *ngIf="activeTab === 'bookings'" class="tab-content">
+        <div class="tab-header">
+          <h2 class="tab-title">My Bookings</h2>
+          <p class="tab-subtitle">View and manage your flight bookings</p>
+        </div>
+        
+        <div *ngIf="bookings.length === 0" class="empty-state">
+          <div class="empty-icon" aria-hidden="true">🎫</div>
+          <h4 class="empty-title">No bookings yet</h4>
+          <p class="empty-text">Start your journey by searching for flights</p>
+        </div>
+        <div *ngFor="let booking of bookings" class="booking-card">
+          <div class="booking-header">
+            <div class="booking-title">
+              <h3>Booking #{{ booking.id }}</h3>
+              <span class="booking-ref">Ref: {{ booking.bookingReference }}</span>
+            </div>
+            <span class="status" 
+                  [class.confirmed]="booking.bookingStatus === 'Confirmed'" 
+                  [class.pending]="booking.bookingStatus === 'Pending'"
+                  [class.cancelled]="booking.bookingStatus === 'Cancelled'"
+                  role="status">{{ booking.bookingStatus }}</span>
+          </div>
+          <div class="booking-details">
+            <div class="detail-item">
+              <span class="detail-icon" aria-hidden="true">✈️</span>
+              <div class="detail-content">
+                <span class="detail-label">Flight</span>
+                <span class="detail-value">{{ booking.flightNumber || 'N/A' }}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon" aria-hidden="true">📍</span>
+              <div class="detail-content">
+                <span class="detail-label">Route</span>
+                <span class="detail-value">{{ booking.origin || 'N/A' }} → {{ booking.destination || 'N/A' }}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon" aria-hidden="true">📅</span>
+              <div class="detail-content">
+                <span class="detail-label">Date</span>
+                <span class="detail-value">{{ booking.departureTime ? (booking.departureTime | date:'medium') : 'N/A' }}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon" aria-hidden="true">👥</span>
+              <div class="detail-content">
+                <span class="detail-label">Passengers</span>
+                <span class="detail-value">{{ booking.passengers?.length || 0 }}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon" aria-hidden="true">💰</span>
+              <div class="detail-content">
+                <span class="detail-label">Total</span>
+                <span class="detail-value price">₹{{ booking.totalAmount }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="booking-actions">
+            <button class="btn-primary" (click)="downloadTicket(booking.id)" *ngIf="booking.bookingStatus === 'Confirmed'" aria-label="Download ticket">
+              <span class="btn-icon" aria-hidden="true">💾</span>
+              <span>Download Ticket</span>
+            </button>
+            <button class="btn-warning" *ngIf="booking.bookingStatus === 'Pending'" (click)="retryPayment(booking.id, booking.totalAmount)" aria-label="Complete payment">
+              <span class="btn-icon" aria-hidden="true">💳</span>
+              <span>Complete Payment</span>
+            </button>
+            <button class="btn-danger" *ngIf="booking.bookingStatus === 'Confirmed' || booking.bookingStatus === 'Pending'" (click)="cancelBooking(booking.id)" aria-label="Cancel booking">
+              <span class="btn-icon" aria-hidden="true">❌</span>
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Profile Tab -->
+      <div *ngIf="activeTab === 'profile'" class="tab-content">
+        <div class="tab-header">
+          <h2 class="tab-title">Profile Information</h2>
+          <p class="tab-subtitle">Your personal travel details</p>
+        </div>
+        
+        <div *ngIf="userProfile" class="profile-view">
+          <div class="alert alert-info" role="alert">
+            <span class="alert-icon" aria-hidden="true">🔒</span>
+            <span class="alert-text"><strong>Profile Locked:</strong> Your profile details cannot be changed once saved. This ensures data integrity for all bookings.</span>
+          </div>
+          <div class="profile-grid">
+            <div class="profile-item">
+              <label class="profile-label">Passport Number</label>
+              <span class="profile-value">{{ userProfile.passportNumber }}</span>
+            </div>
+            <div class="profile-item">
+              <label class="profile-label">Gender</label>
+              <span class="profile-value">{{ userProfile.gender }}</span>
+            </div>
+            <div class="profile-item">
+              <label class="profile-label">Age</label>
+              <span class="profile-value">{{ userProfile.age }}</span>
+            </div>
+            <div class="profile-item">
+              <label class="profile-label">Nationality</label>
+              <span class="profile-value">{{ userProfile.nationality || 'N/A' }}</span>
+            </div>
+            <div class="profile-item">
+              <label class="profile-label">Date of Birth</label>
+              <span class="profile-value">{{ userProfile.dateOfBirth | date:'mediumDate' }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <form *ngIf="!userProfile" (ngSubmit)="createProfile()" class="profile-form" novalidate>
+          <div class="alert alert-warning" role="alert">
+            <span class="alert-icon" aria-hidden="true">⚠️</span>
+            <span class="alert-text"><strong>Important:</strong> Profile details cannot be changed once saved. Please verify all information carefully before submitting.</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="passportNumber" class="form-label">
+                <span>Passport Number</span>
+                <span class="label-required">*</span>
+              </label>
+              <input type="text" id="passportNumber" [(ngModel)]="profileData.passportNumber" name="passportNumber" required class="form-input" aria-required="true">
+            </div>
+            <div class="form-group">
+              <label for="gender" class="form-label">
+                <span>Gender</span>
+                <span class="label-required">*</span>
+              </label>
+              <select id="gender" [(ngModel)]="profileData.gender" name="gender" required class="form-input" aria-required="true">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="age" class="form-label">
+                <span>Age</span>
+                <span class="label-required">*</span>
+              </label>
+              <input type="number" id="age" [(ngModel)]="profileData.age" name="age" min="1" max="120" required class="form-input" aria-required="true">
+            </div>
+            <div class="form-group">
+              <label for="nationality" class="form-label">Nationality</label>
+              <input type="text" id="nationality" [(ngModel)]="profileData.nationality" name="nationality" class="form-input">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dateOfBirth" class="form-label">
+                <span>Date of Birth</span>
+                <span class="label-required">*</span>
+              </label>
+              <input type="date" id="dateOfBirth" [(ngModel)]="profileData.dateOfBirth" name="dateOfBirth" [max]="maxDateOfBirth" required class="form-input" aria-required="true">
+            </div>
+          </div>
+          <button type="submit" class="btn-primary btn-large">
+            <span class="btn-icon" aria-hidden="true">💾</span>
+            <span>Save Profile (One-Time Only)</span>
+          </button>
+        </form>
+      </div>
+      <!-- Account Settings Tab -->
+      <div *ngIf="activeTab === 'account'" class="tab-content">
+        <div class="tab-header">
+          <h2 class="tab-title">Account Settings</h2>
+          <p class="tab-subtitle">Update your account information</p>
+        </div>
+        <form (ngSubmit)="updateUser()" class="account-form" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName" class="form-label">
+                <span>First Name</span>
+                <span class="label-required">*</span>
+              </label>
+              <input type="text" id="firstName" [(ngModel)]="updateUserData.firstName" name="firstName" required class="form-input" aria-required="true">
+            </div>
+            <div class="form-group">
+              <label for="lastName" class="form-label">
+                <span>Last Name</span>
+                <span class="label-required">*</span>
+              </label>
+              <input type="text" id="lastName" [(ngModel)]="updateUserData.lastName" name="lastName" required class="form-input" aria-required="true">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email" class="form-label">
+                <span>Email</span>
+                <span class="label-required">*</span>
+              </label>
+              <input type="email" id="email" [(ngModel)]="updateUserData.email" name="email" required class="form-input" aria-required="true">
+            </div>
+          </div>
+          <button type="submit" class="btn-primary btn-large">
+            <span class="btn-icon" aria-hidden="true">💾</span>
+            <span>Update Account</span>
+          </button>
+        </form>
+      </div>
+      <!-- Change Password Tab -->
+      <div *ngIf="activeTab === 'password'" class="tab-content">
+        <div class="tab-header">
+          <h2 class="tab-title">Change Password</h2>
+          <p class="tab-subtitle">Update your account password</p>
+        </div>
+        <form (ngSubmit)="changePassword()" class="password-form" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="currentPassword" class="form-label">
+                <span>Current Password</span>
+                <span class="label-required">*</span>
+              </label>
+              <div class="password-input">
+                <input 
+                  [type]="showCurrentPassword ? 'text' : 'password'" 
+                  id="currentPassword"
+                  [(ngModel)]="passwordData.currentPassword" 
+                  name="currentPassword" 
+                  required
+                  class="form-input"
+                  aria-required="true">
+                <button 
+                  type="button" 
+                  class="toggle-password" 
+                  (click)="showCurrentPassword = !showCurrentPassword"
+                  [attr.aria-label]="showCurrentPassword ? 'Hide password' : 'Show password'">
+                  <span aria-hidden="true">{{ showCurrentPassword ? '👁️' : '👁️🗨️' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newPassword" class="form-label">
+                <span>New Password</span>
+                <span class="label-required">*</span>
+              </label>
+              <div class="password-input">
+                <input 
+                  [type]="showNewPassword ? 'text' : 'password'" 
+                  id="newPassword"
+                  [(ngModel)]="passwordData.newPassword" 
+                  name="newPassword" 
+                  required
+                  class="form-input"
+                  aria-required="true">
+                <button 
+                  type="button" 
+                  class="toggle-password" 
+                  (click)="showNewPassword = !showNewPassword"
+                  [attr.aria-label]="showNewPassword ? 'Hide password' : 'Show password'">
+                  <span aria-hidden="true">{{ showNewPassword ? '👁️' : '👁️🗨️' }}</span>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword" class="form-label">
+                <span>Confirm New Password</span>
+                <span class="label-required">*</span>
+              </label>
+              <div class="password-input">
+                <input 
+                  [type]="showConfirmPassword ? 'text' : 'password'" 
+                  id="confirmPassword"
+                  [(ngModel)]="passwordData.confirmPassword" 
+                  name="confirmPassword" 
+                  required
+                  class="form-input"
+                  aria-required="true">
+                <button 
+                  type="button" 
+                  class="toggle-password" 
+                  (click)="showConfirmPassword = !showConfirmPassword"
+                  [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'">
+                  <span aria-hidden="true">{{ showConfirmPassword ? '👁️' : '👁️🗨️' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary btn-large">
+            <span class="btn-icon" aria-hidden="true">🔒</span>
+            <span>Change Password</span>
+          </button>
+        </form>
+      </div>
+    </main>
+  </div>
+</div>

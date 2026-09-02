@@ -1,0 +1,393 @@
+### Flight Operation System - New Endpoints Testing
+### Base URL
+@baseUrl = http://localhost:5000
+@token = YOUR_USER_TOKEN_HERE
+@adminToken = YOUR_ADMIN_TOKEN_HERE
+
+###############################################
+# USER MANAGEMENT ENDPOINTS
+###############################################
+
+### 1. Get Current User
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### 2. Update User Details
+PUT {{baseUrl}}/users/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Updated",
+  "email": "john.updated@test.com"
+}
+
+### 3. Change Password
+POST {{baseUrl}}/auth/change-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "OldPass@123",
+  "newPassword": "NewPass@123"
+}
+
+### 4. Forgot Password
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@test.com"
+}
+
+### 5. Reset Password (use token from forgot password response)
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "RESET_TOKEN_HERE",
+  "email": "user@test.com",
+  "newPassword": "NewPass@123"
+}
+
+### 6. Refresh Token (use refreshToken from login response)
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "REFRESH_TOKEN_HERE"
+}
+
+### 7. Verify Email
+POST {{baseUrl}}/auth/verify-email
+Content-Type: application/json
+
+{
+  "token": "VERIFICATION_TOKEN_HERE",
+  "email": "user@test.com"
+}
+
+### 8. Resend Verification Email
+POST {{baseUrl}}/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "user@test.com"
+}
+
+### 9. Delete User Profile
+DELETE {{baseUrl}}/profile
+Authorization: Bearer {{token}}
+
+### 10. Delete User Account
+DELETE {{baseUrl}}/users/1
+Authorization: Bearer {{token}}
+
+###############################################
+# FLIGHT SERVICE ENDPOINTS
+###############################################
+
+### 11. Get Available Seats for Flight
+GET {{baseUrl}}/flights/available-seats/1
+
+### 12. Get Flights by Route
+GET {{baseUrl}}/flights/by-route?originId=1&destinationId=2
+
+### 13. Get Flights by Route with Date
+GET {{baseUrl}}/flights/by-route?originId=1&destinationId=2&date=2024-12-25
+
+### 14. Update Aircraft (Admin)
+PUT {{baseUrl}}/admin/aircraft/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "manufacturer": "Boeing",
+  "model": "777-300ER",
+  "totalSeats": 350
+}
+
+### 15. Delete Aircraft (Admin)
+DELETE {{baseUrl}}/admin/aircraft/1
+Authorization: Bearer {{adminToken}}
+
+### 16. Update Airport (Admin)
+PUT {{baseUrl}}/admin/airports/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "JFK",
+  "name": "John F. Kennedy International Airport",
+  "city": "New York",
+  "country": "USA"
+}
+
+### 17. Delete Airport (Admin)
+DELETE {{baseUrl}}/admin/airports/1
+Authorization: Bearer {{adminToken}}
+
+### 18. Update Route (Admin)
+PUT {{baseUrl}}/admin/routes/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "originAirportId": 1,
+  "destinationAirportId": 2,
+  "distanceKm": 5000
+}
+
+###############################################
+# BOOKING SERVICE ENDPOINTS
+###############################################
+
+### 19. Update Booking
+PUT {{baseUrl}}/bookings/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "passengers": [
+    {
+      "fullName": "John Updated",
+      "age": 30,
+      "gender": "Male",
+      "passportNumber": "AB123456",
+      "seatNumber": "12A"
+    }
+  ]
+}
+
+### 20. Get All Bookings (Admin)
+GET {{baseUrl}}/bookings/all
+Authorization: Bearer {{adminToken}}
+
+### 21. Get Bookings by Flight (Admin)
+GET {{baseUrl}}/bookings/by-flight/1
+Authorization: Bearer {{adminToken}}
+
+### 22. Resend Ticket Email
+POST {{baseUrl}}/bookings/1/resend-ticket
+Authorization: Bearer {{token}}
+
+###############################################
+# ADMIN ANALYTICS ENDPOINTS
+###############################################
+
+### 23. Get Dashboard Statistics (Admin)
+GET {{baseUrl}}/admin/dashboard/stats
+Authorization: Bearer {{adminToken}}
+
+### 24. Get Revenue Report (Admin)
+GET {{baseUrl}}/admin/reports/revenue?from=2024-01-01&to=2024-12-31
+Authorization: Bearer {{adminToken}}
+
+### 25. Get Revenue Report - Last Month (Admin)
+GET {{baseUrl}}/admin/reports/revenue
+Authorization: Bearer {{adminToken}}
+
+### 26. Get Popular Routes (Admin)
+GET {{baseUrl}}/admin/reports/popular-routes?top=10
+Authorization: Bearer {{adminToken}}
+
+### 27. Get Popular Routes - Default Top 10 (Admin)
+GET {{baseUrl}}/admin/reports/popular-routes
+Authorization: Bearer {{adminToken}}
+
+###############################################
+# PAYMENT SERVICE ENDPOINTS
+###############################################
+
+### 28. Get All Payments (Admin)
+GET {{baseUrl}}/payments/all
+Authorization: Bearer {{adminToken}}
+
+### 29. Get User Payment History
+GET {{baseUrl}}/payments/user/1
+Authorization: Bearer {{token}}
+
+### 30. Razorpay Webhook (Public)
+POST {{baseUrl}}/payments/webhook
+Content-Type: application/json
+
+{
+  "event": "payment.captured",
+  "payload": {
+    "payment": {
+      "entity": {
+        "id": "pay_123456",
+        "amount": 50000,
+        "currency": "INR",
+        "status": "captured"
+      }
+    }
+  }
+}
+
+###############################################
+# NOTIFICATION SERVICE ENDPOINTS
+###############################################
+
+### 31. Get User Notifications
+GET {{baseUrl}}/notifications/user/1
+Authorization: Bearer {{token}}
+
+###############################################
+# COMPLETE USER FLOW TEST
+###############################################
+
+### STEP 1: Register New User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Test",
+  "lastName": "User",
+  "email": "testuser@example.com",
+  "password": "Test@123",
+  "role": "User"
+}
+
+### STEP 2: Login (Save tokens from response)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "Test@123"
+}
+
+### STEP 3: Get Current User Info
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### STEP 4: Create User Profile
+POST {{baseUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "passportNumber": "AB123456",
+  "gender": "Male",
+  "age": 30,
+  "nationality": "USA",
+  "dateOfBirth": "1994-01-01"
+}
+
+### STEP 5: Search Flights
+GET {{baseUrl}}/flights/search?departure=2024-12-25
+
+### STEP 6: Check Available Seats
+GET {{baseUrl}}/flights/available-seats/1
+
+### STEP 7: Create Booking
+POST {{baseUrl}}/bookings/create
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "flightId": 1,
+  "totalAmount": 500.00,
+  "useProfileAsPassenger": true,
+  "seatNumber": "12A"
+}
+
+### STEP 8: View My Bookings
+GET {{baseUrl}}/bookings/my-bookings
+Authorization: Bearer {{token}}
+
+### STEP 9: Download Ticket
+GET {{baseUrl}}/bookings/1/download-ticket
+Authorization: Bearer {{token}}
+
+### STEP 10: Resend Ticket Email
+POST {{baseUrl}}/bookings/1/resend-ticket
+Authorization: Bearer {{token}}
+
+### STEP 11: Change Password
+POST {{baseUrl}}/auth/change-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "Test@123",
+  "newPassword": "NewTest@123"
+}
+
+### STEP 12: Update Profile
+PUT {{baseUrl}}/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "passportNumber": "AB123456",
+  "gender": "Male",
+  "age": 31,
+  "nationality": "USA",
+  "dateOfBirth": "1994-01-01"
+}
+
+###############################################
+# ADMIN FLOW TEST
+###############################################
+
+### ADMIN STEP 1: Login as Admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "Admin@123"
+}
+
+### ADMIN STEP 2: View Dashboard Stats
+GET {{baseUrl}}/admin/dashboard/stats
+Authorization: Bearer {{adminToken}}
+
+### ADMIN STEP 3: View All Users
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{adminToken}}
+
+### ADMIN STEP 4: View All Bookings
+GET {{baseUrl}}/bookings/all
+Authorization: Bearer {{adminToken}}
+
+### ADMIN STEP 5: View All Payments
+GET {{baseUrl}}/payments/all
+Authorization: Bearer {{adminToken}}
+
+### ADMIN STEP 6: View Revenue Report
+GET {{baseUrl}}/admin/reports/revenue
+Authorization: Bearer {{adminToken}}
+
+### ADMIN STEP 7: View Popular Routes
+GET {{baseUrl}}/admin/reports/popular-routes
+Authorization: Bearer {{adminToken}}
+
+### ADMIN STEP 8: Add New Aircraft
+POST {{baseUrl}}/admin/aircraft
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "manufacturer": "Airbus",
+  "model": "A380",
+  "totalSeats": 500
+}
+
+### ADMIN STEP 9: Update Aircraft
+PUT {{baseUrl}}/admin/aircraft/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "manufacturer": "Airbus",
+  "model": "A380-800",
+  "totalSeats": 525
+}
+
+### ADMIN STEP 10: View Bookings for Specific Flight
+GET {{baseUrl}}/bookings/by-flight/1
+Authorization: Bearer {{adminToken}}

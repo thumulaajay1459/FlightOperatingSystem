@@ -1,0 +1,199 @@
+### Pagination Tests for Flight Operation System
+
+@baseUrl = http://localhost:5000
+@userServiceUrl = http://localhost:5001
+@flightServiceUrl = http://localhost:5003
+@bookingServiceUrl = http://localhost:5004
+@notificationServiceUrl = http://localhost:5005
+@paymentServiceUrl = http://localhost:5006
+@aiServiceUrl = http://localhost:5008
+
+# Replace with actual tokens after login
+@adminToken = your_admin_token_here
+@userToken = your_user_token_here
+
+###############################################
+# USER SERVICE - Pagination Tests
+###############################################
+
+### Get All Users - Page 1 (Admin)
+GET {{userServiceUrl}}/api/User?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get All Users - Page 2 (Admin)
+GET {{userServiceUrl}}/api/User?page=2&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get All Users - Default pagination (Admin)
+GET {{userServiceUrl}}/api/User
+Authorization: Bearer {{adminToken}}
+
+### Get All Users - Large page size (Admin)
+GET {{userServiceUrl}}/api/User?page=1&pageSize=50
+Authorization: Bearer {{adminToken}}
+
+###############################################
+# FLIGHT SERVICE - Pagination Tests
+###############################################
+
+### Get All Airports - Page 1 (Admin)
+GET {{flightServiceUrl}}/api/Airports?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get Public Airports - Page 1
+GET {{flightServiceUrl}}/api/Airports/public?page=1&pageSize=10
+
+### Get All Aircraft - Page 1 (Admin)
+GET {{flightServiceUrl}}/api/Aircraft?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get All Routes - Page 1 (Admin)
+GET {{flightServiceUrl}}/api/Routes?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get All Flights - Page 1
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=1&pageSize=10
+
+### Get All Flights - Page 2
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=2&pageSize=10
+
+### Get All Flights - Default pagination
+GET {{flightServiceUrl}}/api/ScheduledFlights
+
+### Search Flights - With pagination
+GET {{flightServiceUrl}}/api/ScheduledFlights/search?origin=BOM&destination=BLR&page=1&pageSize=5
+
+### Search Flights - Page 2
+GET {{flightServiceUrl}}/api/ScheduledFlights/search?origin=BOM&destination=BLR&page=2&pageSize=5
+
+### Get Flights by Route - With pagination
+GET {{flightServiceUrl}}/api/ScheduledFlights/by-route?originId=1&destinationId=2&page=1&pageSize=10
+
+###############################################
+# BOOKING SERVICE - Pagination Tests
+###############################################
+
+### Get My Bookings - Page 1
+GET {{bookingServiceUrl}}/api/booking/my-bookings?page=1&pageSize=10
+Authorization: Bearer {{userToken}}
+
+### Get My Bookings - Page 2
+GET {{bookingServiceUrl}}/api/booking/my-bookings?page=2&pageSize=5
+Authorization: Bearer {{userToken}}
+
+### Get All Bookings - Page 1 (Admin)
+GET {{bookingServiceUrl}}/api/booking/all?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get Bookings by Flight - With pagination (Admin)
+GET {{bookingServiceUrl}}/api/booking/by-flight/1?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+###############################################
+# NOTIFICATION SERVICE - Pagination Tests
+###############################################
+
+### Get Notification History - Page 1
+GET {{notificationServiceUrl}}/api/notifications/history?page=1&pageSize=10
+
+### Get Notification History - Page 2
+GET {{notificationServiceUrl}}/api/notifications/history?page=2&pageSize=10
+
+### Get User Notifications - Page 1
+GET {{notificationServiceUrl}}/api/notifications/user/1?page=1&pageSize=10
+
+###############################################
+# PAYMENT SERVICE - Pagination Tests
+###############################################
+
+### Get All Payments - Page 1 (Admin)
+GET {{paymentServiceUrl}}/api/payments/all?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get User Payments - Page 1
+GET {{paymentServiceUrl}}/api/payments/user/1?page=1&pageSize=10
+Authorization: Bearer {{userToken}}
+
+###############################################
+# AI SERVICE - Pagination Tests
+###############################################
+
+### Get Chat Sessions - Page 1
+GET {{aiServiceUrl}}/api/chat/sessions?page=1&pageSize=10
+Authorization: Bearer {{userToken}}
+
+### Get Chat History - Page 1
+GET {{aiServiceUrl}}/api/chat/sessions/1/history?page=1&pageSize=20
+Authorization: Bearer {{userToken}}
+
+### Get Chat History - Page 2
+GET {{aiServiceUrl}}/api/chat/sessions/1/history?page=2&pageSize=20
+Authorization: Bearer {{userToken}}
+
+###############################################
+# VIA API GATEWAY - Pagination Tests
+###############################################
+
+### Get Flights via Gateway - Page 1
+GET {{baseUrl}}/flights?page=1&pageSize=10
+
+### Get Flights via Gateway - Page 2
+GET {{baseUrl}}/flights?page=2&pageSize=10
+
+### Get My Bookings via Gateway - Page 1
+GET {{baseUrl}}/bookings/my-bookings?page=1&pageSize=10
+Authorization: Bearer {{userToken}}
+
+### Search Flights via Gateway - With pagination
+GET {{baseUrl}}/search/flights?origin=BOM&destination=BLR&page=1&pageSize=10
+
+###############################################
+# EDGE CASES - Pagination Tests
+###############################################
+
+### Test invalid page number (negative)
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=-1&pageSize=10
+
+### Test invalid page size (too large)
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=1&pageSize=500
+
+### Test invalid page size (zero)
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=1&pageSize=0
+
+### Test page beyond total pages
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=9999&pageSize=10
+
+### Test with only page parameter
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=2
+
+### Test with only pageSize parameter
+GET {{flightServiceUrl}}/api/ScheduledFlights?pageSize=20
+
+###############################################
+# PERFORMANCE TESTS
+###############################################
+
+### Small page size (5 items)
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=1&pageSize=5
+
+### Medium page size (25 items)
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=1&pageSize=25
+
+### Large page size (50 items)
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=1&pageSize=50
+
+### Maximum page size (100 items)
+GET {{flightServiceUrl}}/api/ScheduledFlights?page=1&pageSize=100
+
+###############################################
+# COMBINED FILTERS WITH PAGINATION
+###############################################
+
+### Search with filters and pagination
+GET {{flightServiceUrl}}/api/ScheduledFlights/search?flightNumber=AI&status=Scheduled&page=1&pageSize=10
+
+### Search by date with pagination
+GET {{flightServiceUrl}}/api/ScheduledFlights/search?departure=2026-05-14&page=1&pageSize=10
+
+### Search by origin and destination with pagination
+GET {{flightServiceUrl}}/api/ScheduledFlights/search?origin=Mumbai&destination=Bangalore&page=1&pageSize=10

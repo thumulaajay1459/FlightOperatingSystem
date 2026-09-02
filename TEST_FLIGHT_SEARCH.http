@@ -1,0 +1,44 @@
+### Test 1: Get all airports to see what cities are available
+GET http://localhost:5000/airports?paginate=false
+
+###
+
+### Test 2: Get all routes to see what connections exist
+GET http://localhost:5000/routes?paginate=false
+
+###
+
+### Test 3: Get all flights to see what's scheduled
+GET http://localhost:5000/flights
+
+###
+
+### Test 4: Search flights from Mumbai to Bengaluru (no date)
+GET http://localhost:5000/flights/search-flights?from=Mumbai&to=Bengaluru
+
+###
+
+### Test 5: Search flights from Mumbai to Bangalore (alternate spelling)
+GET http://localhost:5000/flights/search-flights?from=Mumbai&to=Bangalore
+
+###
+
+### Test 6: Search flights from Ahmedabad to Mumbai
+GET http://localhost:5000/flights/search-flights?from=Ahmedabad&to=Mumbai
+
+###
+
+### Test 7: Search flights from BOM to BLR (using codes)
+GET http://localhost:5000/flights/search-flights?from=BOM&to=BLR
+
+###
+
+### Test 8: Search flights from Delhi to Mumbai
+GET http://localhost:5000/flights/search-flights?from=Delhi&to=Mumbai
+
+###
+
+### Test 9: Search flights with future date
+GET http://localhost:5000/flights/search-flights?from=Mumbai&to=Delhi&date=2025-01-20
+
+###

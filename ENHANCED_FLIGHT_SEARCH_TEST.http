@@ -1,0 +1,288 @@
+### ========================================
+### ENHANCED FLIGHT SEARCH SYSTEM - TEST FILE
+### ========================================
+
+@baseUrl = http://localhost:5000
+@token = YOUR_JWT_TOKEN_HERE
+
+### ========================================
+### 1. BASIC SEARCH - Location to Location
+### ========================================
+
+### Search flights from Delhi to Mumbai (any date)
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai
+
+### Search flights from Mumbai to Bangalore on specific date
+GET {{baseUrl}}/flights/search?from=Mumbai&to=Bangalore&date=2025-01-20
+
+### Search using airport codes
+GET {{baseUrl}}/flights/search?from=DEL&to=BOM&date=2025-01-25
+
+### ========================================
+### 2. ROUND TRIP SEARCH
+### ========================================
+
+### Search round trip: Delhi to Mumbai and back
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2025-01-20&returnDate=2025-01-27
+
+### Round trip with airport codes
+GET {{baseUrl}}/flights/search?from=BLR&to=MAA&date=2025-02-01&returnDate=2025-02-05
+
+### ========================================
+### 3. FILTERED SEARCH
+### ========================================
+
+### Search with price range filter
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2025-01-20&minPrice=3000&maxPrice=8000
+
+### Search morning flights only
+GET {{baseUrl}}/flights/search?from=Mumbai&to=Bangalore&date=2025-01-20&timeOfDay=morning
+
+### Search afternoon flights
+GET {{baseUrl}}/flights/search?from=Delhi&to=Chennai&date=2025-01-20&timeOfDay=afternoon
+
+### Search evening flights
+GET {{baseUrl}}/flights/search?from=Bangalore&to=Hyderabad&date=2025-01-20&timeOfDay=evening
+
+### ========================================
+### 4. SORTED SEARCH
+### ========================================
+
+### Sort by price (default)
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2025-01-20&sortBy=price
+
+### Sort by duration
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2025-01-20&sortBy=duration
+
+### Sort by departure time
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2025-01-20&sortBy=departure
+
+### ========================================
+### 5. COMBINED FILTERS
+### ========================================
+
+### Morning flights with price range, sorted by price
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2025-01-20&timeOfDay=morning&minPrice=4000&maxPrice=10000&sortBy=price
+
+### Round trip with all filters
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2025-01-20&returnDate=2025-01-27&timeOfDay=morning&minPrice=5000&maxPrice=15000&sortBy=duration
+
+### ========================================
+### 6. ADVANCED SEARCH (by flight number, status)
+### ========================================
+
+### Search by flight number
+GET {{baseUrl}}/flights/search-advanced?flightNumber=FL001
+
+### Search by origin and destination
+GET {{baseUrl}}/flights/search-advanced?origin=Delhi&destination=Mumbai
+
+### Search by status
+GET {{baseUrl}}/flights/search-advanced?status=Scheduled
+
+### Search by departure date
+GET {{baseUrl}}/flights/search-advanced?departure=2025-01-20
+
+### Combined advanced search
+GET {{baseUrl}}/flights/search-advanced?origin=Delhi&destination=Mumbai&departure=2025-01-20&status=Scheduled
+
+### ========================================
+### 7. VALIDATION TESTS (Should Return Errors)
+### ========================================
+
+### Error: Past date
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2020-01-01
+
+### Error: Return date before departure
+GET {{baseUrl}}/flights/search?from=Delhi&to=Mumbai&date=2025-01-20&returnDate=2025-01-15
+
+### Error: Same origin and destination
+GET {{baseUrl}}/flights/search?from=Delhi&to=Delhi&date=2025-01-20
+
+### ========================================
+### 8. CALCULATE PRICE
+### ========================================
+
+### Calculate price for 1 Adult + 1 Child + 1 Infant (One Way)
+POST {{baseUrl}}/flights/calculate-price
+Content-Type: application/json
+
+{
+  "flightId": 1,
+  "passengers": [
+    {
+      "passengerType": "Adult",
+      "seatClass": "Economy",
+      "seatNumber": "12A"
+    },
+    {
+      "passengerType": "Child",
+      "seatClass": "Economy",
+      "seatNumber": "12B"
+    },
+    {
+      "passengerType": "Infant",
+      "seatClass": "Economy",
+      "seatNumber": "12C"
+    }
+  ]
+}
+
+### Calculate price for Round Trip (2 Adults in Business)
+POST {{baseUrl}}/flights/calculate-price
+Content-Type: application/json
+
+{
+  "flightId": 1,
+  "returnFlightId": 2,
+  "passengers": [
+    {
+      "passengerType": "Adult",
+      "seatClass": "Business",
+      "seatNumber": "1A"
+    },
+    {
+      "passengerType": "Adult",
+      "seatClass": "Business",
+      "seatNumber": "1B"
+    }
+  ]
+}
+
+### ========================================
+### 9. CHECK SEAT AVAILABILITY
+### ========================================
+
+### Get available seats for a specific flight
+GET {{baseUrl}}/flights/available-seats/1
+
+### ========================================
+### 10. AI CHATBOT FLIGHT QUERIES
+### ========================================
+
+### Ask chatbot about flights from Delhi to Mumbai
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+  "sessionId": 1,
+  "message": "Show me flights from Delhi to Mumbai",
+  "userId": "test-user-1"
+}
+
+### Ask chatbot about flights on specific date
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+  "sessionId": 1,
+  "message": "Are there any flights from Bangalore to Chennai on January 20th?",
+  "userId": "test-user-1"
+}
+
+### Ask chatbot about flight prices
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+  "sessionId": 1,
+  "message": "What are the prices for flights from Delhi to Mumbai?",
+  "userId": "test-user-1"
+}
+
+### Ask chatbot about available routes
+POST {{baseUrl}}/chat
+Content-Type: application/json
+
+{
+  "sessionId": 1,
+  "message": "What routes are available?",
+  "userId": "test-user-1"
+}
+
+### ========================================
+### RESPONSE FORMAT EXAMPLES
+### ========================================
+
+# One-Way Search Response:
+# {
+#   "searchCriteria": {
+#     "from": "Delhi",
+#     "to": "Mumbai",
+#     "departureDate": "2025-01-20",
+#     "tripType": "OneWay",
+#     "sortBy": "price"
+#   },
+#   "outbound": {
+#     "totalFlights": 5,
+#     "flights": [
+#       {
+#         "flightId": 1,
+#         "flightNumber": "FL001",
+#         "origin": "Delhi",
+#         "originCode": "DEL",
+#         "destination": "Mumbai",
+#         "destinationCode": "BOM",
+#         "departureTime": "2025-01-20T06:00:00",
+#         "arrivalTime": "2025-01-20T08:30:00",
+#         "durationHours": 2.5,
+#         "status": "Scheduled",
+#         "aircraft": "Boeing 737",
+#         "totalSeats": 180,
+#         "availableSeats": 145,
+#         "economyPrice": 5000,
+#         "premiumEconomyPrice": 8000,
+#         "businessPrice": 15000,
+#         "firstClassPrice": 25000,
+#         "childDiscountPercent": 25,
+#         "infantDiscountPercent": 90
+#       }
+#     ]
+#   }
+# }
+
+# Round-Trip Search Response:
+# {
+#   "searchCriteria": {
+#     "from": "Delhi",
+#     "to": "Mumbai",
+#     "departureDate": "2025-01-20",
+#     "returnDate": "2025-01-27",
+#     "tripType": "RoundTrip"
+#   },
+#   "outbound": { ... },
+#   "returnTrip": { ... }
+# }
+
+### ========================================
+### FEATURES IMPLEMENTED
+### ========================================
+
+# ✅ User-friendly location search (city name or airport code)
+# ✅ Round trip search support
+# ✅ Price range filtering
+# ✅ Time of day filtering (morning/afternoon/evening/night)
+# ✅ Multiple sort options (price/duration/departure/arrival)
+# ✅ Seat availability display
+# ✅ Pricing information in search results
+# ✅ Input validation (past dates, invalid date ranges)
+# ✅ AI chatbot integration with natural language queries
+# ✅ Enhanced response format with all flight details
+# ✅ Support for both simple and advanced search
+
+### ========================================
+### TIME OF DAY DEFINITIONS
+### ========================================
+
+# Morning: 06:00 - 11:59
+# Afternoon: 12:00 - 17:59
+# Evening: 18:00 - 23:59
+# Night: 00:00 - 05:59
+
+### ========================================
+### PASSENGER TYPE DISCOUNTS
+### ========================================
+
+# Adult: Full price (100%)
+# Child (2-11 years): 25% discount (75% of adult price)
+# Infant (0-23 months): 90% discount (10% of adult price)

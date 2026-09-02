@@ -1,0 +1,221 @@
+<div class="admin-container">
+  <nav class="admin-nav">
+    <div class="nav-brand">🔧 Admin Dashboard</div>
+    <div class="nav-user">
+      <span>Admin: {{ admin?.firstName }}</span>
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+  </nav>
+  <div class="admin-content">
+    <div class="sidebar">
+      <button [class.active]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">📊 Dashboard</button>
+      <button [class.active]="activeTab === 'users'" (click)="switchTab('users')">👥 Users</button>
+      <button [class.active]="activeTab === 'bookings'" (click)="switchTab('bookings')">🎫 Bookings</button>
+      <button [class.active]="activeTab === 'flights'" (click)="switchTab('flights')">✈️ Flights</button>
+      <button [class.active]="activeTab === 'aircraft'" (click)="switchTab('aircraft')">🛩️ Aircraft</button>
+      <button [class.active]="activeTab === 'airports'" (click)="switchTab('airports')">🏢 Airports</button>
+      <button [class.active]="activeTab === 'routes'" (click)="switchTab('routes')">🗺️ Routes</button>
+    </div>
+    <div class="main-content">
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+      
+      <div *ngIf="activeTab === 'dashboard'" class="tab-content">
+        <h2>Dashboard Overview</h2>
+        <div class="stats-grid">
+          <div class="stat-card"><h3>{{ stats?.totalUsers || 0 }}</h3><p>Total Users</p></div>
+          <div class="stat-card"><h3>{{ stats?.totalBookings || 0 }}</h3><p>Total Bookings</p></div>
+          <div class="stat-card"><h3>₹{{ stats?.totalRevenue || 0 }}</h3><p>Total Revenue</p></div>
+          <div class="stat-card"><h3>{{ stats?.activeFlights || 0 }}</h3><p>Active Flights</p></div>
+        </div>
+      </div>
+      
+      <div *ngIf="activeTab === 'users'" class="tab-content">
+        <h2>User Management</h2>
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td>{{ user.id }}</td>
+              <td>{{ user.firstName }} {{ user.lastName }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.role }}</td>
+              <td><div class="action-btns"><button class="btn-small btn-delete" (click)="deleteUser(user.id)">Delete</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="users.length === 0" class="no-data">No users found</div>
+        <div *ngIf="users.length > 0" class="pagination">
+          <button (click)="previousPage()" [disabled]="currentPage === 1" class="btn-page">← Previous</button>
+          <button *ngFor="let page of getPageNumbers()" (click)="goToPage(page)" [class.active]="page === currentPage" class="btn-page">{{ page }}</button>
+          <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="btn-page">Next →</button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} total)</span>
+        </div>
+      </div>
+      
+      <div *ngIf="activeTab === 'bookings'" class="tab-content">
+        <h2>Booking Management</h2>
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>User</th><th>Flight</th><th>Status</th><th>Amount</th><th>Date</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let booking of bookings">
+              <td>{{ booking.id }}</td>
+              <td>{{ booking.userId }}</td>
+              <td>{{ booking.flightNumber }}</td>
+              <td>{{ booking.status }}</td>
+              <td>₹{{ booking.totalAmount }}</td>
+              <td>{{ booking.bookingDate | date:'short' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="bookings.length === 0" class="no-data">No bookings found</div>
+        <div *ngIf="bookings.length > 0" class="pagination">
+          <button (click)="previousPage()" [disabled]="currentPage === 1" class="btn-page">← Previous</button>
+          <button *ngFor="let page of getPageNumbers()" (click)="goToPage(page)" [class.active]="page === currentPage" class="btn-page">{{ page }}</button>
+          <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="btn-page">Next →</button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} total)</span>
+        </div>
+      </div>
+      
+      <div *ngIf="activeTab === 'aircraft'" class="tab-content">
+        <h2>Aircraft Management</h2>
+        <div class="form-section">
+          <h3>Add New Aircraft</h3>
+          <form (ngSubmit)="addAircraft()" class="form-grid">
+            <div class="form-group"><label>Model</label><input type="text" [(ngModel)]="aircraftForm.model" name="model" (blur)="validateAircraftField('model')" [class.error]="aircraftErrors.model" required><span class="field-error" *ngIf="aircraftErrors.model">{{ aircraftErrors.model }}</span></div>
+            <div class="form-group"><label>Manufacturer</label><input type="text" [(ngModel)]="aircraftForm.manufacturer" name="manufacturer" (blur)="validateAircraftField('manufacturer')" [class.error]="aircraftErrors.manufacturer" required><span class="field-error" *ngIf="aircraftErrors.manufacturer">{{ aircraftErrors.manufacturer }}</span></div>
+            <div class="form-group"><label>Total Seats</label><input type="number" [(ngModel)]="aircraftForm.totalSeats" name="totalSeats" (blur)="validateAircraftField('totalSeats')" [class.error]="aircraftErrors.totalSeats" required><span class="field-error" *ngIf="aircraftErrors.totalSeats">{{ aircraftErrors.totalSeats }}</span></div>
+            <div class="form-group"><label>Economy Seats</label><input type="number" [(ngModel)]="aircraftForm.economySeats" name="economySeats" required></div>
+            <div class="form-group"><label>Business Seats</label><input type="number" [(ngModel)]="aircraftForm.businessSeats" name="businessSeats" required></div>
+            <div class="form-group"><label>First Class Seats</label><input type="number" [(ngModel)]="aircraftForm.firstClassSeats" name="firstClassSeats" required></div>
+            <button type="submit" class="btn-primary" [disabled]="isLoading">{{ isLoading ? 'Adding...' : 'Add Aircraft' }}</button>
+          </form>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Model</th><th>Manufacturer</th><th>Total Seats</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let ac of aircraft">
+              <td>{{ ac.aircraftId || ac.id }}</td>
+              <td>{{ ac.model }}</td>
+              <td>{{ ac.manufacturer }}</td>
+              <td>{{ ac.totalSeats }}</td>
+              <td><div class="action-btns"><button class="btn-small btn-delete" (click)="deleteAircraft(ac.aircraftId || ac.id)">Delete</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="aircraft.length === 0" class="no-data">No aircraft found</div>
+        <div *ngIf="aircraft.length > 0" class="pagination">
+          <button (click)="previousPage()" [disabled]="currentPage === 1" class="btn-page">← Previous</button>
+          <button *ngFor="let page of getPageNumbers()" (click)="goToPage(page)" [class.active]="page === currentPage" class="btn-page">{{ page }}</button>
+          <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="btn-page">Next →</button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} total)</span>
+        </div>
+      </div>
+      
+      <div *ngIf="activeTab === 'airports'" class="tab-content">
+        <h2>Airport Management</h2>
+        <div class="form-section">
+          <h3>Add New Airport</h3>
+          <form (ngSubmit)="addAirport()" class="form-grid">
+            <div class="form-group"><label>Airport Code</label><input type="text" [(ngModel)]="airportForm.code" name="code" (blur)="validateAirportField('code')" [class.error]="airportErrors.code" maxlength="3" style="text-transform: uppercase;" required><span class="field-error" *ngIf="airportErrors.code">{{ airportErrors.code }}</span></div>
+            <div class="form-group"><label>Airport Name</label><input type="text" [(ngModel)]="airportForm.name" name="name" (blur)="validateAirportField('name')" [class.error]="airportErrors.name" required><span class="field-error" *ngIf="airportErrors.name">{{ airportErrors.name }}</span></div>
+            <div class="form-group"><label>City</label><input type="text" [(ngModel)]="airportForm.city" name="city" (blur)="validateAirportField('city')" [class.error]="airportErrors.city" required><span class="field-error" *ngIf="airportErrors.city">{{ airportErrors.city }}</span></div>
+            <div class="form-group"><label>Country</label><input type="text" [(ngModel)]="airportForm.country" name="country" (blur)="validateAirportField('country')" [class.error]="airportErrors.country" required><span class="field-error" *ngIf="airportErrors.country">{{ airportErrors.country }}</span></div>
+            <button type="submit" class="btn-primary" [disabled]="isLoading">{{ isLoading ? 'Adding...' : 'Add Airport' }}</button>
+          </form>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Code</th><th>Name</th><th>City</th><th>Country</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let airport of airports">
+              <td>{{ airport.airportId || airport.id }}</td>
+              <td>{{ airport.code || airport.airportCode }}</td>
+              <td>{{ airport.name || airport.airportName }}</td>
+              <td>{{ airport.city }}</td>
+              <td>{{ airport.country }}</td>
+              <td><div class="action-btns"><button class="btn-small btn-delete" (click)="deleteAirport(airport.airportId || airport.id)">Delete</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="airports.length === 0" class="no-data">No airports found</div>
+        <div *ngIf="airports.length > 0" class="pagination">
+          <button (click)="previousPage()" [disabled]="currentPage === 1" class="btn-page">← Previous</button>
+          <button *ngFor="let page of getPageNumbers()" (click)="goToPage(page)" [class.active]="page === currentPage" class="btn-page">{{ page }}</button>
+          <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="btn-page">Next →</button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} total)</span>
+        </div>
+      </div>
+      
+      <div *ngIf="activeTab === 'routes'" class="tab-content">
+        <h2>Route Management</h2>
+        <div class="form-section">
+          <h3>Add New Route</h3>
+          <form (ngSubmit)="addRoute()" class="form-grid">
+            <div class="form-group"><label>Origin Airport</label><select [(ngModel)]="routeForm.originAirportId" name="originAirportId" (blur)="validateRouteField('originAirportId')" [class.error]="routeErrors.originAirportId" required><option value="0">Select Airport</option><option *ngFor="let ap of airports" [value]="ap.airportId || ap.id">{{ ap.code || ap.airportCode }} - {{ ap.name || ap.airportName }}</option></select><span class="field-error" *ngIf="routeErrors.originAirportId">{{ routeErrors.originAirportId }}</span></div>
+            <div class="form-group"><label>Destination Airport</label><select [(ngModel)]="routeForm.destinationAirportId" name="destinationAirportId" (blur)="validateRouteField('destinationAirportId')" [class.error]="routeErrors.destinationAirportId" required><option value="0">Select Airport</option><option *ngFor="let ap of airports" [value]="ap.airportId || ap.id">{{ ap.code || ap.airportCode }} - {{ ap.name || ap.airportName }}</option></select><span class="field-error" *ngIf="routeErrors.destinationAirportId">{{ routeErrors.destinationAirportId }}</span></div>
+            <div class="form-group"><label>Distance (km)</label><input type="number" [(ngModel)]="routeForm.distanceKm" name="distanceKm" (blur)="validateRouteField('distanceKm')" [class.error]="routeErrors.distanceKm" required><span class="field-error" *ngIf="routeErrors.distanceKm">{{ routeErrors.distanceKm }}</span></div>
+            <button type="submit" class="btn-primary" [disabled]="isLoading">{{ isLoading ? 'Adding...' : 'Add Route' }}</button>
+          </form>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Route</th><th>Distance</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let route of routes">
+              <td><strong>{{ route.originName }} → {{ route.destName }}</strong></td>
+              <td>{{ route.distanceKm || route.distance }} km</td>
+              <td><div class="action-btns"><button class="btn-small btn-delete" (click)="deleteRoute(route.routeId || route.id)">Delete</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="routes.length === 0" class="no-data">No routes found</div>
+        <div *ngIf="routes.length > 0" class="pagination">
+          <button (click)="previousPage()" [disabled]="currentPage === 1" class="btn-page">← Previous</button>
+          <button *ngFor="let page of getPageNumbers()" (click)="goToPage(page)" [class.active]="page === currentPage" class="btn-page">{{ page }}</button>
+          <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="btn-page">Next →</button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} total)</span>
+        </div>
+      </div>
+      
+      <div *ngIf="activeTab === 'flights'" class="tab-content">
+        <h2>Flight Management</h2>
+        <div *ngIf="isLoading" style="text-align: center; padding: 2rem; color: #6b7280;">Loading flights...</div>
+        <div class="form-section">
+          <h3>Add New Flight</h3>
+          <form (ngSubmit)="addFlight()" class="form-grid">
+            <div class="form-group"><label>Route</label><select [(ngModel)]="flightForm.routeId" name="routeId" (blur)="validateFlightField('routeId')" [class.error]="flightErrors.routeId" required><option value="0">Select Route</option><option *ngFor="let r of routes" [value]="r.routeId || r.id">{{ r.originName }} → {{ r.destName }} ({{ r.distanceKm || r.distance }} km)</option></select><span class="field-error" *ngIf="flightErrors.routeId">{{ flightErrors.routeId }}</span></div>
+            <div class="form-group"><label>Aircraft</label><select [(ngModel)]="flightForm.aircraftId" name="aircraftId" (blur)="validateFlightField('aircraftId')" [class.error]="flightErrors.aircraftId" required><option value="0">Select Aircraft</option><option *ngFor="let ac of aircraft" [value]="ac.aircraftId || ac.id">{{ ac.manufacturer }} {{ ac.model }}</option></select><span class="field-error" *ngIf="flightErrors.aircraftId">{{ flightErrors.aircraftId }}</span></div>
+            <div class="form-group"><label>Airline</label><select [(ngModel)]="selectedAirline" name="airline" required><option value="">Select Airline</option><option *ngFor="let airline of airlines" [value]="airline.code">{{ airline.code }} - {{ airline.name }}</option></select></div>
+            <div class="form-group"><label>Flight Number Suffix</label><input type="text" [(ngModel)]="flightNumberSuffix" name="flightNumberSuffix" placeholder="e.g., 101" maxlength="4" (blur)="validateFlightField('flightNumber')" [class.error]="flightErrors.flightNumber" required><small style="color: #6b7280;">Preview: {{ selectedAirline }}{{ flightNumberSuffix }}</small><span class="field-error" *ngIf="flightErrors.flightNumber">{{ flightErrors.flightNumber }}</span></div>
+            <div class="form-group"><label>Departure Time</label><input type="datetime-local" [(ngModel)]="flightForm.departureTime" name="departureTime" [min]="minDateTime" (blur)="validateFlightField('departureTime')" [class.error]="flightErrors.departureTime" required><span class="field-error" *ngIf="flightErrors.departureTime">{{ flightErrors.departureTime }}</span></div>
+            <div class="form-group"><label>Arrival Time</label><input type="datetime-local" [(ngModel)]="flightForm.arrivalTime" name="arrivalTime" [min]="minDateTime" (blur)="validateFlightField('arrivalTime')" [class.error]="flightErrors.arrivalTime" required><span class="field-error" *ngIf="flightErrors.arrivalTime">{{ flightErrors.arrivalTime }}</span></div>
+            <div class="form-group"><label>Economy Price</label><input type="number" [(ngModel)]="flightForm.economyPrice" name="economyPrice" (blur)="validateFlightField('economyPrice')" [class.error]="flightErrors.economyPrice" required><span class="field-error" *ngIf="flightErrors.economyPrice">{{ flightErrors.economyPrice }}</span></div>
+            <div class="form-group"><label>Business Price</label><input type="number" [(ngModel)]="flightForm.businessPrice" name="businessPrice" (blur)="validateFlightField('businessPrice')" [class.error]="flightErrors.businessPrice" required><span class="field-error" *ngIf="flightErrors.businessPrice">{{ flightErrors.businessPrice }}</span></div>
+            <div class="form-group"><label>First Class Price</label><input type="number" [(ngModel)]="flightForm.firstClassPrice" name="firstClassPrice" (blur)="validateFlightField('firstClassPrice')" [class.error]="flightErrors.firstClassPrice" required><span class="field-error" *ngIf="flightErrors.firstClassPrice">{{ flightErrors.firstClassPrice }}</span></div>
+            <div class="form-group"><label>Status</label><select [(ngModel)]="flightForm.status" name="status" required><option value="Scheduled">Scheduled</option><option value="Delayed">Delayed</option><option value="Cancelled">Cancelled</option></select></div>
+            <button type="submit" class="btn-primary" [disabled]="isLoading || !selectedAirline || !flightNumberSuffix">{{ isLoading ? 'Adding...' : 'Add Flight' }}</button>
+          </form>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Flight Number</th><th>Route</th><th>Aircraft</th><th>Departure</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let flight of flights">
+              <td><strong>{{ flight.flightNumber }}</strong></td>
+              <td>{{ flight.routeName || flight.origin + ' → ' + flight.destination || 'Route ' + (flight.routeId || 'N/A') }}</td>
+              <td>{{ flight.aircraftName || flight.manufacturer + ' ' + flight.model || 'Aircraft ' + (flight.aircraftId || 'N/A') }}</td>
+              <td>{{ flight.departureTime | date:'short' }}</td>
+              <td>{{ flight.status }}</td>
+              <td><div class="action-btns"><button class="btn-small btn-delete" (click)="deleteFlight(flight.flightId || flight.id)">Delete</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="flights.length === 0" class="no-data">No flights found</div>
+        <div *ngIf="flights.length > 0" class="pagination">
+          <button (click)="previousPage()" [disabled]="currentPage === 1" class="btn-page">← Previous</button>
+          <button *ngFor="let page of getPageNumbers()" (click)="goToPage(page)" [class.active]="page === currentPage" class="btn-page">{{ page }}</button>
+          <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="btn-page">Next →</button>
+          <span class="page-info">Page {{ currentPage }} of {{ totalPages }} ({{ totalCount }} total)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

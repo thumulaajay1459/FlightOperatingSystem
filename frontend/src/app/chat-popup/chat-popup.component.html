@@ -1,0 +1,76 @@
+<!-- Floating Chat Button -->
+<div class="chat-fab" (click)="toggleChat()" *ngIf="!isOpen" title="AI Assistant">
+  🤖
+</div>
+
+<!-- Chat Popup Window -->
+<div class="chat-popup" *ngIf="isOpen" [class.minimized]="isMinimized">
+  <div class="chat-popup-header">
+    <div class="header-left">
+      <span class="bot-icon">🤖</span>
+      <div class="header-text">
+        <h3>AI Flight Assistant</h3>
+        <span class="status-dot"></span>
+        <span class="status-text">Online</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" (click)="newChat()" title="New Chat">🔄</button>
+      <button class="header-btn" (click)="minimizeChat()" title="Minimize">
+        {{ isMinimized ? '🔼' : '🔽' }}
+      </button>
+      <button class="header-btn close" (click)="closeChat()" title="Close">✕</button>
+    </div>
+  </div>
+
+  <div class="chat-popup-body" *ngIf="!isMinimized">
+    <div class="popup-messages-container">
+      <div *ngIf="messages.length === 0" class="welcome-message-popup">
+        <div class="welcome-icon">👋</div>
+        <h4>Hi! I'm your AI Flight Assistant</h4>
+        <p *ngIf="!isAuthenticated" class="guest-notice-popup">
+          You're browsing as a guest. Login to access your bookings.
+        </p>
+        <p class="welcome-text">Ask me about flights, routes, seats, or bookings!</p>
+      </div>
+
+      <div *ngFor="let msg of messages" class="popup-message" [ngClass]="msg.role.toLowerCase()">
+        <div class="popup-message-avatar">
+          {{ msg.role === 'User' ? '👤' : '🤖' }}
+        </div>
+        <div class="popup-message-content">
+          <div class="popup-message-text">{{ msg.content }}</div>
+          <div class="popup-message-time">{{ msg.createdAt | date:'short' }}</div>
+        </div>
+      </div>
+
+      <div *ngIf="isLoading" class="popup-message assistant">
+        <div class="popup-message-avatar">🤖</div>
+        <div class="popup-message-content">
+          <div class="typing-indicator-popup">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-popup-footer">
+      <button class="login-btn-popup" *ngIf="!isAuthenticated" (click)="goToLogin()">
+        Login
+      </button>
+      <form (ngSubmit)="sendMessage()" class="popup-message-form">
+        <input 
+          type="text" 
+          [(ngModel)]="userMessage" 
+          name="message"
+          placeholder="Type your message..."
+          [disabled]="isLoading"
+          class="popup-message-input"
+        >
+        <button type="submit" [disabled]="!userMessage.trim() || isLoading" class="popup-send-btn">
+          ✈️
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

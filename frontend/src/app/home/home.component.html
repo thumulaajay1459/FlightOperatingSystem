@@ -1,0 +1,227 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="logo">
+      <span class="logo-icon">✈️</span>
+      <span class="logo-text">SkyWings</span>
+    </div>
+    <div class="nav-actions">
+      <button class="chat-btn" (click)="goToChat()">💬 AI Assistant</button>
+      <button class="login-btn" (click)="goToLogin()">Login / Sign Up</button>
+    </div>
+  </div>
+</nav>
+
+<main class="main-content">
+  <section class="hero">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <span class="gradient-text">Discover Your Next</span>
+        <span class="gradient-text">Adventure</span>
+      </h1>
+      <p class="hero-subtitle">Book flights to anywhere in the world with ease and confidence</p>
+      <div class="hero-features">
+        <div class="feature-badge">🌍 200+ Destinations</div>
+        <div class="feature-badge">💰 Best Prices</div>
+        <div class="feature-badge">🤖 AI Assistant</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="search-section">
+    <div class="search-container">
+      <div class="search-header">
+        <h2>🔍 Find Your Perfect Flight</h2>
+        <p>Search from thousands of flights worldwide</p>
+      </div>
+      
+      <div class="trip-type-selector">
+        <label class="radio-label" [class.active]="tripType === 'OneWay'">
+          <input type="radio" [(ngModel)]="tripType" name="tripType" value="OneWay">
+          <span class="radio-icon">➡️</span>
+          <span>One Way</span>
+        </label>
+        <label class="radio-label" [class.active]="tripType === 'RoundTrip'">
+          <input type="radio" [(ngModel)]="tripType" name="tripType" value="RoundTrip">
+          <span class="radio-icon">🔄</span>
+          <span>Round Trip</span>
+        </label>
+      </div>
+      
+      <form (ngSubmit)="searchFlights()" class="search-form">
+        <div class="form-group">
+          <label>🛩️ From</label>
+          <input type="text" [(ngModel)]="searchData.origin" name="origin" list="originAirports" placeholder="Type or select origin city" autocomplete="off" required>
+          <datalist id="originAirports">
+            <option *ngFor="let airport of airports" [value]="airport.city">{{ airport.city }} ({{ airport.code }}) - {{ airport.name }}</option>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label>🛬 To</label>
+          <input type="text" [(ngModel)]="searchData.destination" name="destination" list="destinationAirports" placeholder="Type or select destination city" autocomplete="off" required>
+          <datalist id="destinationAirports">
+            <option *ngFor="let airport of airports" [value]="airport.city">{{ airport.city }} ({{ airport.code }}) - {{ airport.name }}</option>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label>📅 Departure Date</label>
+          <input type="date" [(ngModel)]="searchData.departureDate" name="departureDate" [min]="minDate">
+        </div>
+        <div class="form-group" *ngIf="tripType === 'RoundTrip'">
+          <label>📅 Return Date</label>
+          <input type="date" [(ngModel)]="searchData.returnDate" name="returnDate" [min]="searchData.departureDate || minDate">
+        </div>
+        
+        <div class="passengers-group">
+          <label class="passengers-label">👥 Passengers</label>
+          <div class="passenger-controls">
+            <div class="passenger-item">
+              <div class="passenger-info">
+                <span class="passenger-icon">👨</span>
+                <span class="passenger-label">Adults</span>
+              </div>
+              <div class="counter">
+                <button type="button" class="counter-btn" (click)="passengers.adults = passengers.adults > 1 ? passengers.adults - 1 : 1">-</button>
+                <span class="counter-value">{{ passengers.adults }}</span>
+                <button type="button" class="counter-btn" (click)="passengers.adults = passengers.adults + 1">+</button>
+              </div>
+            </div>
+            <div class="passenger-item">
+              <div class="passenger-info">
+                <span class="passenger-icon">🧒</span>
+                <span class="passenger-label">Children (2-11)</span>
+              </div>
+              <div class="counter">
+                <button type="button" class="counter-btn" (click)="passengers.children = passengers.children > 0 ? passengers.children - 1 : 0">-</button>
+                <span class="counter-value">{{ passengers.children }}</span>
+                <button type="button" class="counter-btn" (click)="passengers.children = passengers.children + 1">+</button>
+              </div>
+            </div>
+            <div class="passenger-item">
+              <div class="passenger-info">
+                <span class="passenger-icon">👶</span>
+                <span class="passenger-label">Infants (0-2)</span>
+              </div>
+              <div class="counter">
+                <button type="button" class="counter-btn" (click)="passengers.infants = passengers.infants > 0 ? passengers.infants - 1 : 0">-</button>
+                <span class="counter-value">{{ passengers.infants }}</span>
+                <button type="button" class="counter-btn" (click)="passengers.infants = passengers.infants + 1">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="search-btn">
+          <span class="btn-icon">🔍</span>
+          <span>Search Flights</span>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <section class="results-section" *ngIf="showResults">
+    <div class="results-container">
+      <div class="results-header">
+        <h2>✈️ Outbound Flights</h2>
+        <p *ngIf="!isLoading && flights.length > 0">{{ flights.length }} flights found</p>
+      </div>
+      
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Searching for the best flights...</p>
+      </div>
+      
+      <div *ngIf="errorMessage" class="error-message">
+        <span class="error-icon">⚠️</span>
+        <span>{{ errorMessage }}</span>
+      </div>
+      
+      <div *ngIf="!isLoading && flights.length === 0 && !errorMessage" class="no-results">
+        <div class="no-results-icon">🔍</div>
+        <h3>No flights found</h3>
+        <p>Try adjusting your search criteria</p>
+      </div>
+      
+      <div *ngFor="let flight of flights" class="flight-card">
+        <div class="flight-badge">{{ flight.aircraft?.manufacturer || 'Aircraft' }}</div>
+        <div class="flight-main">
+          <div class="flight-route-visual">
+            <div class="route-point">
+              <div class="airport-code">{{ flight.origin?.code || 'XXX' }}</div>
+              <div class="city-name">{{ flight.origin?.city || 'Origin' }}</div>
+              <div class="time">{{ flight.departureTime | date:'shortTime' }}</div>
+            </div>
+            <div class="route-line">
+              <div class="plane-icon">✈️</div>
+              <div class="duration">{{ calculateDuration(flight.departureTime, flight.arrivalTime) }}</div>
+            </div>
+            <div class="route-point">
+              <div class="airport-code">{{ flight.destination?.code || 'XXX' }}</div>
+              <div class="city-name">{{ flight.destination?.city || 'Destination' }}</div>
+              <div class="time">{{ flight.arrivalTime | date:'shortTime' }}</div>
+            </div>
+          </div>
+          <div class="flight-meta">
+            <span class="meta-item">🎫 {{ flight.flightNumber }}</span>
+            <span class="meta-item">📅 {{ flight.departureTime | date:'mediumDate' }}</span>
+            <span class="meta-item">💺 {{ flight.aircraft?.totalSeats || 'N/A' }} seats</span>
+          </div>
+        </div>
+        <div class="flight-action">
+          <div class="price-section">
+            <div class="price-label">From</div>
+            <div class="price-amount">₹{{ (flight.pricing?.economy || 0) * getTotalPassengers() }}</div>
+            <div class="price-per">for {{ getTotalPassengers() }} passenger(s)</div>
+          </div>
+          <button class="book-btn" (click)="goToLogin()">
+            <span>🔒 Login to Book</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="results-container" *ngIf="tripType === 'RoundTrip' && returnFlights.length > 0">
+      <div class="results-header">
+        <h2>🔙 Return Flights</h2>
+        <p>{{ returnFlights.length }} flights found</p>
+      </div>
+      
+      <div *ngFor="let flight of returnFlights" class="flight-card">
+        <div class="flight-badge return">{{ flight.aircraft?.manufacturer || 'Aircraft' }}</div>
+        <div class="flight-main">
+          <div class="flight-route-visual">
+            <div class="route-point">
+              <div class="airport-code">{{ flight.origin?.code || 'XXX' }}</div>
+              <div class="city-name">{{ flight.origin?.city || 'Origin' }}</div>
+              <div class="time">{{ flight.departureTime | date:'shortTime' }}</div>
+            </div>
+            <div class="route-line">
+              <div class="plane-icon">✈️</div>
+              <div class="duration">{{ calculateDuration(flight.departureTime, flight.arrivalTime) }}</div>
+            </div>
+            <div class="route-point">
+              <div class="airport-code">{{ flight.destination?.code || 'XXX' }}</div>
+              <div class="city-name">{{ flight.destination?.city || 'Destination' }}</div>
+              <div class="time">{{ flight.arrivalTime | date:'shortTime' }}</div>
+            </div>
+          </div>
+          <div class="flight-meta">
+            <span class="meta-item">🎫 {{ flight.flightNumber }}</span>
+            <span class="meta-item">📅 {{ flight.departureTime | date:'mediumDate' }}</span>
+            <span class="meta-item">💺 {{ flight.aircraft?.totalSeats || 'N/A' }} seats</span>
+          </div>
+        </div>
+        <div class="flight-action">
+          <div class="price-section">
+            <div class="price-label">From</div>
+            <div class="price-amount">₹{{ (flight.pricing?.economy || 0) * getTotalPassengers() }}</div>
+            <div class="price-per">for {{ getTotalPassengers() }} passenger(s)</div>
+          </div>
+          <button class="book-btn" (click)="goToLogin()">
+            <span>🔒 Login to Book</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

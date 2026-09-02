@@ -1,0 +1,32 @@
+### Test /api/User/me endpoint directly on UserService
+
+### Step 1: Login to get a fresh token
+POST http://localhost:5001/api/User/Login
+Content-Type: application/json
+
+{
+  "email": "john@test.com",
+  "password": "User@123"
+}
+
+### Step 2: Copy the accessToken from above response and paste it below
+@token = PASTE_YOUR_TOKEN_HERE
+
+### Step 3: Test the /me endpoint
+GET http://localhost:5001/api/User/me
+Authorization: Bearer {{token}}
+
+### Alternative: Test with admin user
+POST http://localhost:5001/api/User/Login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "Admin@123"
+}
+
+### Use admin token
+@adminToken = PASTE_ADMIN_TOKEN_HERE
+
+GET http://localhost:5001/api/User/me
+Authorization: Bearer {{adminToken}}

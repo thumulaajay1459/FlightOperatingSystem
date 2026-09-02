@@ -1,0 +1,281 @@
+<div class="booking-container">
+  <div class="booking-header">
+    <h1>Complete Your Booking</h1>
+    <button class="cancel-btn" (click)="cancel()">Cancel</button>
+  </div>
+  
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  
+  <div class="booking-content">
+    <div class="flight-summary">
+      <h2>Flight Details</h2>
+      <div class="summary-card">
+        <h3>Outbound Flight</h3>
+        <p><strong>Flight:</strong> {{ flight?.flightNumber }}</p>
+        <p><strong>Route:</strong> {{ flight?.originAirportCode }} → {{ flight?.destinationAirportCode }}</p>
+        <p><strong>Departure:</strong> {{ flight?.departureTime | date:'medium' }}</p>
+        <p><strong>Arrival:</strong> {{ flight?.arrivalTime | date:'medium' }}</p>
+        <p><strong>Price:</strong> ₹{{ flight?.price || 0 }}</p>
+        <!-- DEBUG: {{ flight | json }} -->
+      </div>
+      <div class="summary-card" *ngIf="returnFlight">
+        <h3>Return Flight</h3>
+        <p><strong>Flight:</strong> {{ returnFlight?.flightNumber }}</p>
+        <p><strong>Route:</strong> {{ returnFlight?.originAirportCode }} → {{ returnFlight?.destinationAirportCode }}</p>
+        <p><strong>Departure:</strong> {{ returnFlight?.departureTime | date:'medium' }}</p>
+        <p><strong>Arrival:</strong> {{ returnFlight?.arrivalTime | date:'medium' }}</p>
+        <p><strong>Price:</strong> ₹{{ returnFlight?.price }}</p>
+      </div>
+      <div class="total-price">
+        <h3>Total Price: ₹{{ totalPrice }}</h3>
+      </div>
+    </div>
+    
+    <div class="passenger-details">
+      <h2>Passenger Details</h2>
+      <div *ngFor="let passenger of passengers; let i = index" class="passenger-form">
+        <div class="passenger-header">
+          <h3>Passenger {{ i + 1 }} ({{ passenger.passengerType }})</h3>
+          <button *ngIf="i === 0 && !passenger.fullName" type="button" class="use-profile-btn" (click)="useMyProfile(i)">
+            ✓ Use My Profile Details
+          </button>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" [(ngModel)]="passenger.fullName" placeholder="Full Name" (blur)="validatePassengerField(i, 'fullName')" [class.error]="passengerErrors[i]?.fullName" required>
+            <span class="field-error" *ngIf="passengerErrors[i]?.fullName">{{ passengerErrors[i].fullName }}</span>
+          </div>
+          <div class="form-group">
+            <label>Age *</label>
+            <input type="number" [(ngModel)]="passenger.age" (blur)="validatePassengerField(i, 'age')" [class.error]="passengerErrors[i]?.age" required>
+            <span class="field-error" *ngIf="passengerErrors[i]?.age">{{ passengerErrors[i].age }}</span>
+          </div>
+          <div class="form-group">
+            <label>Gender *</label>
+            <select [(ngModel)]="passenger.gender" (blur)="validatePassengerField(i, 'gender')" [class.error]="passengerErrors[i]?.gender" required>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <span class="field-error" *ngIf="passengerErrors[i]?.gender">{{ passengerErrors[i].gender }}</span>
+          </div>
+          <div class="form-group">
+            <label>Passport Number *</label>
+            <input type="text" [(ngModel)]="passenger.passportNumber" placeholder="Passport Number" (blur)="validatePassengerField(i, 'passportNumber')" [class.error]="passengerErrors[i]?.passportNumber" style="text-transform: uppercase;" required>
+            <span class="field-error" *ngIf="passengerErrors[i]?.passportNumber">{{ passengerErrors[i].passportNumber }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="booking-actions">
+    <button class="btn-secondary" (click)="cancel()">Cancel</button>
+    <button class="btn-primary" (click)="proceedToSeatSelection()" [disabled]="isLoading">
+      Proceed to Seat Selection
+    </button>
+  </div>
+  
+  <!-- Seat Selection Modal -->
+  <div *ngIf="showSeatSelectionModal" class="modal-overlay" (click)="closeSeatSelection()">
+    <div class="modal-content seat-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Select Seats for All Passengers</h2>
+        <button class="close-btn" (click)="closeSeatSelection()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="seatMap.length === 0" class="loading-message">
+          <p>Loading seat map...</p>
+        </div>
+        <div *ngFor="let passenger of passengers; let i = index" class="seat-selection-section">
+          <div class="seat-header">
+            <h4>{{ passenger.fullName }} ({{ passenger.passengerType }})</h4>
+            <span class="selected-seat" *ngIf="passenger.seatNumber">Selected: <strong>{{ passenger.seatNumber }}</strong></span>
+          </div>
+          
+          <div class="seat-legend">
+            <span class="legend-item"><span class="legend-box available"></span> Available</span>
+            <span class="legend-item"><span class="legend-box occupied"></span> Occupied</span>
+            <span class="legend-item"><span class="legend-box selected"></span> Your Selection</span>
+          </div>
+          
+          <div class="seat-map-container">
+            <div class="seat-map-header">Outbound Flight - {{ flight?.flightNumber }}</div>
+            <div class="seat-map">
+              <div *ngFor="let seatClass of getClassKeys(groupedSeatMap)" class="seat-class-section">
+                <div class="seat-class-header" 
+                     [class.first-class]="seatClass === 'FirstClass'"
+                     [class.business]="seatClass === 'Business'"
+                     [class.premium-economy]="seatClass === 'PremiumEconomy'"
+                     [class.economy]="seatClass === 'Economy'">
+                  {{ getClassLabel(seatClass) }}
+                </div>
+                <div class="seat-class-body">
+                  <div *ngFor="let row of groupedSeatMap[seatClass]" class="seat-row">
+                    <div class="seat-group">
+                      <div *ngFor="let seat of row.slice(0, 3)" class="seat" 
+                           [class.available]="seat.status === 'Available' && !isSeatSelectedByOther(seat.seatNumber, i)"
+                           [class.occupied]="seat.status !== 'Available' || isSeatSelectedByOther(seat.seatNumber, i)"
+                           [class.selected]="passenger.seatNumber === seat.seatNumber"
+                           (click)="selectSeat(seat, i, false)"
+                           [title]="getSeatTooltip(seat, i)">
+                        <div class="seat-number">{{ seat.seatNumber }}</div>
+                        <div class="seat-price" *ngIf="seat.extraCharge > 0">+₹{{ seat.extraCharge }}</div>
+                      </div>
+                    </div>
+                    <div class="aisle"></div>
+                    <div class="seat-group">
+                      <div *ngFor="let seat of row.slice(3)" class="seat" 
+                           [class.available]="seat.status === 'Available' && !isSeatSelectedByOther(seat.seatNumber, i)"
+                           [class.occupied]="seat.status !== 'Available' || isSeatSelectedByOther(seat.seatNumber, i)"
+                           [class.selected]="passenger.seatNumber === seat.seatNumber"
+                           (click)="selectSeat(seat, i, false)"
+                           [title]="getSeatTooltip(seat, i)">
+                        <div class="seat-number">{{ seat.seatNumber }}</div>
+                        <div class="seat-price" *ngIf="seat.extraCharge > 0">+₹{{ seat.extraCharge }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="returnFlight" class="seat-map-container">
+            <div class="seat-map-header">Return Flight - {{ returnFlight?.flightNumber }}</div>
+            <div class="seat-map">
+              <div *ngFor="let seatClass of getClassKeys(groupedReturnSeatMap)" class="seat-class-section">
+                <div class="seat-class-header" 
+                     [class.first-class]="seatClass === 'FirstClass'"
+                     [class.business]="seatClass === 'Business'"
+                     [class.premium-economy]="seatClass === 'PremiumEconomy'"
+                     [class.economy]="seatClass === 'Economy'">
+                  {{ getClassLabel(seatClass) }}
+                </div>
+                <div class="seat-class-body">
+                  <div *ngFor="let row of groupedReturnSeatMap[seatClass]" class="seat-row">
+                    <div class="seat-group">
+                      <div *ngFor="let seat of row.slice(0, 3)" class="seat"
+                           [class.available]="seat.status === 'Available' && !isReturnSeatSelectedByOther(seat.seatNumber, i)"
+                           [class.occupied]="seat.status !== 'Available' || isReturnSeatSelectedByOther(seat.seatNumber, i)"
+                           [class.selected]="passenger.returnSeatNumber === seat.seatNumber"
+                           (click)="selectSeat(seat, i, true)"
+                           [title]="getReturnSeatTooltip(seat, i)">
+                        <div class="seat-number">{{ seat.seatNumber }}</div>
+                        <div class="seat-price" *ngIf="seat.extraCharge > 0">+₹{{ seat.extraCharge }}</div>
+                      </div>
+                    </div>
+                    <div class="aisle"></div>
+                    <div class="seat-group">
+                      <div *ngFor="let seat of row.slice(3)" class="seat"
+                           [class.available]="seat.status === 'Available' && !isReturnSeatSelectedByOther(seat.seatNumber, i)"
+                           [class.occupied]="seat.status !== 'Available' || isReturnSeatSelectedByOther(seat.seatNumber, i)"
+                           [class.selected]="passenger.returnSeatNumber === seat.seatNumber"
+                           (click)="selectSeat(seat, i, true)"
+                           [title]="getReturnSeatTooltip(seat, i)">
+                        <div class="seat-number">{{ seat.seatNumber }}</div>
+                        <div class="seat-price" *ngIf="seat.extraCharge > 0">+₹{{ seat.extraCharge }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeSeatSelection()">Go Back</button>
+        <button class="btn-primary" (click)="proceedToConfirmation()" [disabled]="!allSeatsSelected()">
+          Continue to Review
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confirmation Modal -->
+  <div *ngIf="showConfirmationModal" class="modal-overlay" (click)="closeConfirmation()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>⚠️ Confirm Booking Details</h2>
+        <button class="close-btn" (click)="closeConfirmation()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="warning-box">
+          <strong>Important:</strong> Once confirmed, passenger details and seat selections cannot be changed. Please verify all information carefully.
+        </div>
+        
+        <div class="confirmation-section">
+          <h3>Flight Information</h3>
+          <div class="info-grid">
+            <div class="info-item"><label>Flight Number:</label><span>{{ flight?.flightNumber }}</span></div>
+            <div class="info-item"><label>Route:</label><span>{{ flight?.originAirportCode }} → {{ flight?.destinationAirportCode }}</span></div>
+            <div class="info-item"><label>Departure:</label><span>{{ flight?.departureTime | date:'medium' }}</span></div>
+            <div class="info-item"><label>Arrival:</label><span>{{ flight?.arrivalTime | date:'medium' }}</span></div>
+          </div>
+        </div>
+        
+        <div class="confirmation-section" *ngIf="returnFlight">
+          <h3>Return Flight Information</h3>
+          <div class="info-grid">
+            <div class="info-item"><label>Flight Number:</label><span>{{ returnFlight?.flightNumber }}</span></div>
+            <div class="info-item"><label>Route:</label><span>{{ returnFlight?.originAirportCode }} → {{ returnFlight?.destinationAirportCode }}</span></div>
+            <div class="info-item"><label>Departure:</label><span>{{ returnFlight?.departureTime | date:'medium' }}</span></div>
+            <div class="info-item"><label>Arrival:</label><span>{{ returnFlight?.arrivalTime | date:'medium' }}</span></div>
+          </div>
+        </div>
+        
+        <div class="confirmation-section">
+          <h3>Passenger Details</h3>
+          <div *ngFor="let passenger of passengers; let i = index" class="passenger-summary">
+            <h4>Passenger {{ i + 1 }} ({{ passenger.passengerType }})</h4>
+            <div class="info-grid">
+              <div class="info-item"><label>Name:</label><span>{{ passenger.fullName }}</span></div>
+              <div class="info-item"><label>Age:</label><span>{{ passenger.age }}</span></div>
+              <div class="info-item"><label>Gender:</label><span>{{ passenger.gender }}</span></div>
+              <div class="info-item"><label>Passport:</label><span>{{ passenger.passportNumber }}</span></div>
+              <div class="info-item"><label>Seat:</label><span>{{ passenger.seatNumber }}</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="confirmation-section total-section">
+          <h3>Price Breakdown</h3>
+          <div class="price-breakdown">
+            <div class="breakdown-item">
+              <span>Outbound Flight ({{ passengers.length }} passenger{{ passengers.length > 1 ? 's' : '' }})</span>
+              <span>₹{{ getOutboundFlightTotal() }}</span>
+            </div>
+            <div class="breakdown-item" *ngIf="returnFlight">
+              <span>Return Flight ({{ passengers.length }} passenger{{ passengers.length > 1 ? 's' : '' }})</span>
+              <span>₹{{ getReturnFlightTotal() }}</span>
+            </div>
+            <div class="breakdown-item" *ngIf="getTotalSeatCharges() > 0">
+              <span>Seat Selection Charges</span>
+              <span>₹{{ getTotalSeatCharges() }}</span>
+            </div>
+            <div class="breakdown-divider"></div>
+            <div class="breakdown-total">
+              <span>Total Amount</span>
+              <span>₹{{ totalPrice }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="terms-box">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="termsAccepted">
+            I confirm that all details are correct and understand that changes cannot be made after booking.
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeConfirmation()">Go Back & Edit</button>
+        <button class="btn-confirm" (click)="confirmBooking()" [disabled]="!termsAccepted || isLoading">
+          {{ isLoading ? 'Processing...' : 'Confirm & Proceed to Payment' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

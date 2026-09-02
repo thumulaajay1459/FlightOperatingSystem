@@ -1,0 +1,28 @@
+### Test Flight Ticket PDF Download
+
+@token = YOUR_JWT_TOKEN_HERE
+@bookingId = 1
+
+### 1. Get Ticket Details (JSON)
+GET http://localhost:5002/api/booking/{{bookingId}}/ticket
+Authorization: Bearer {{token}}
+
+###
+
+### 2. Download PDF Ticket
+GET http://localhost:5002/api/booking/{{bookingId}}/download-ticket
+Authorization: Bearer {{token}}
+
+###
+
+### 3. Via API Gateway - Get Ticket Details
+GET http://localhost:5000/bookings/{{bookingId}}/ticket
+Authorization: Bearer {{token}}
+
+###
+
+### 4. Via API Gateway - Download PDF Ticket
+GET http://localhost:5000/bookings/{{bookingId}}/download-ticket
+Authorization: Bearer {{token}}
+
+###

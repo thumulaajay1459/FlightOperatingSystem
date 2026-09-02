@@ -1,0 +1,161 @@
+### ========================================
+### ROUND TRIP & PASSENGER TYPE FEATURES
+### ========================================
+
+@baseUrl = http://localhost:5000
+@token = YOUR_JWT_TOKEN_HERE
+
+### 1. SEARCH FLIGHTS - By City Name and Date
+GET {{baseUrl}}/api/ScheduledFlights/search?origin=New York&destination=London&departure=2024-12-25
+Authorization: Bearer {{token}}
+
+### 2. SEARCH FLIGHTS - By Airport Code
+GET {{baseUrl}}/api/ScheduledFlights/search?origin=JFK&destination=LHR&departure=2024-12-25
+Authorization: Bearer {{token}}
+
+### 3. SEARCH FLIGHTS - By Route (using airport IDs)
+GET {{baseUrl}}/api/ScheduledFlights/by-route?originId=1&destinationId=2&date=2024-12-25
+Authorization: Bearer {{token}}
+
+### 4. CALCULATE PRICE - One Way with Adult, Child, Infant
+POST {{baseUrl}}/api/ScheduledFlights/calculate-price
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "flightId": 1,
+  "passengers": [
+    {
+      "passengerType": "Adult",
+      "seatClass": "Economy",
+      "seatNumber": "12A"
+    },
+    {
+      "passengerType": "Child",
+      "seatClass": "Economy",
+      "seatNumber": "12B"
+    },
+    {
+      "passengerType": "Infant",
+      "seatClass": "Economy",
+      "seatNumber": "12C"
+    }
+  ]
+}
+
+### 5. CALCULATE PRICE - Round Trip
+POST {{baseUrl}}/api/ScheduledFlights/calculate-price
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "flightId": 1,
+  "returnFlightId": 2,
+  "passengers": [
+    {
+      "passengerType": "Adult",
+      "seatClass": "Business",
+      "seatNumber": "1A"
+    },
+    {
+      "passengerType": "Child",
+      "seatClass": "Business",
+      "seatNumber": "1B"
+    }
+  ]
+}
+
+### 6. CREATE BOOKING - One Way with Multiple Passengers
+POST {{baseUrl}}/api/bookings/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "flightId": 1,
+  "bookingType": "OneWay",
+  "totalAmount": 15000,
+  "passengers": [
+    {
+      "fullName": "John Doe",
+      "age": 35,
+      "gender": "Male",
+      "passengerType": "Adult",
+      "passportNumber": "A12345678",
+      "seatNumber": "12A"
+    },
+    {
+      "fullName": "Jane Doe",
+      "age": 8,
+      "gender": "Female",
+      "passengerType": "Child",
+      "passportNumber": "A87654321",
+      "seatNumber": "12B"
+    }
+  ]
+}
+
+### 7. CREATE BOOKING - Round Trip
+POST {{baseUrl}}/api/bookings/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "flightId": 1,
+  "returnFlightId": 2,
+  "bookingType": "RoundTrip",
+  "totalAmount": 25000,
+  "passengers": [
+    {
+      "fullName": "John Smith",
+      "age": 40,
+      "gender": "Male",
+      "passengerType": "Adult",
+      "passportNumber": "B12345678",
+      "seatNumber": "5A"
+    },
+    {
+      "fullName": "Emily Smith",
+      "age": 10,
+      "gender": "Female",
+      "passengerType": "Child",
+      "passportNumber": "B87654321",
+      "seatNumber": "5B"
+    },
+    {
+      "fullName": "Baby Smith",
+      "age": 1,
+      "gender": "Male",
+      "passengerType": "Infant",
+      "passportNumber": "B11111111",
+      "seatNumber": "5C"
+    }
+  ]
+}
+
+### 8. GET MY BOOKINGS - View all bookings with round trip info
+GET {{baseUrl}}/api/bookings/my-bookings
+Authorization: Bearer {{token}}
+
+### 9. GET BOOKING BY ID - View specific booking details
+GET {{baseUrl}}/api/bookings/1
+Authorization: Bearer {{token}}
+
+### ========================================
+### FEATURE SUMMARY
+### ========================================
+# ✅ Round Trip Support
+#    - BookingType: OneWay, RoundTrip, MultiCity
+#    - ReturnFlightId field for return flights
+#    - Price calculation for both legs
+#
+# ✅ Passenger Type Selection
+#    - Adult (full price)
+#    - Child (25% discount by default)
+#    - Infant (90% discount by default)
+#
+# ✅ Enhanced Search
+#    - Search by city name (origin/destination)
+#    - Search by airport code
+#    - Search by date
+#    - Search by flight number
+#    - Search by status

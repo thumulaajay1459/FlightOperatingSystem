@@ -1,0 +1,255 @@
+### Flight Search System - Test Endpoints
+
+@baseUrl = http://localhost:5003
+@gatewayUrl = http://localhost:5000
+
+###############################################
+# 1. AIRPORT AUTOCOMPLETE
+###############################################
+
+### Test 1.1: Search by IATA code
+GET {{baseUrl}}/api/search/airports?q=HYD&limit=10
+
+### Test 1.2: Search by city name
+GET {{baseUrl}}/api/search/airports?q=Hyderabad&limit=10
+
+### Test 1.3: Search by partial text
+GET {{baseUrl}}/api/search/airports?q=hyd&limit=10
+
+### Test 1.4: Search with typo (fuzzy matching)
+GET {{baseUrl}}/api/search/airports?q=hyderbad&limit=10
+
+### Test 1.5: Search Delhi
+GET {{baseUrl}}/api/search/airports?q=del&limit=10
+
+### Test 1.6: Search Mumbai
+GET {{baseUrl}}/api/search/airports?q=mumb&limit=10
+
+###############################################
+# 2. SMART FLIGHT SEARCH
+###############################################
+
+### Test 2.1: One-Way Search (Basic)
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 1,
+  "sortBy": "price"
+}
+
+### Test 2.2: One-Way Search (City Names)
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "Hyderabad",
+  "destination": "Delhi",
+  "departureDate": "2024-12-25",
+  "adults": 2,
+  "sortBy": "price"
+}
+
+### Test 2.3: Round-Trip Search
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "returnDate": "2024-12-30",
+  "adults": 2,
+  "children": 1,
+  "cabinClass": "Economy",
+  "sortBy": "price"
+}
+
+### Test 2.4: Search with Price Filter
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 1,
+  "maxPrice": 8000,
+  "sortBy": "price"
+}
+
+### Test 2.5: Search with Time Preference (Morning)
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 1,
+  "timePreference": "morning",
+  "sortBy": "departure"
+}
+
+### Test 2.6: Search with Time Preference (Afternoon)
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 1,
+  "timePreference": "afternoon",
+  "sortBy": "departure"
+}
+
+### Test 2.7: Search with Time Preference (Evening)
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 1,
+  "timePreference": "evening",
+  "sortBy": "departure"
+}
+
+### Test 2.8: Business Class Search
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 2,
+  "cabinClass": "Business",
+  "sortBy": "price"
+}
+
+### Test 2.9: Sort by Duration
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 1,
+  "sortBy": "duration"
+}
+
+### Test 2.10: Sort by Departure Time
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 1,
+  "sortBy": "departure"
+}
+
+###############################################
+# 3. ALTERNATE FLIGHT SUGGESTIONS
+###############################################
+
+### Test 3.1: Get Alternate Flights (±3 days)
+# Replace originId and destId with actual airport IDs from your database
+GET {{baseUrl}}/api/search/alternates?originId=1&destId=2&date=2024-12-25
+
+###############################################
+# 4. ERROR HANDLING TESTS
+###############################################
+
+### Test 4.1: Missing Origin
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "destination": "DEL",
+  "departureDate": "2024-12-25"
+}
+
+### Test 4.2: Missing Destination
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "departureDate": "2024-12-25"
+}
+
+### Test 4.3: Past Date
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2020-01-01"
+}
+
+### Test 4.4: Return Date Before Departure
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "returnDate": "2024-12-20"
+}
+
+### Test 4.5: Invalid Airport Code
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "INVALID",
+  "destination": "DEL",
+  "departureDate": "2024-12-25"
+}
+
+###############################################
+# 5. VIA API GATEWAY (After Gateway Update)
+###############################################
+
+### Test 5.1: Autocomplete via Gateway
+GET {{gatewayUrl}}/search/airports?q=hyd
+
+### Test 5.2: Search via Gateway
+POST {{gatewayUrl}}/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "adults": 1
+}
+
+###############################################
+# 6. COMPARISON WITH OLD ENDPOINT
+###############################################
+
+### Old Search Endpoint (For Comparison)
+GET {{baseUrl}}/api/ScheduledFlights/search-flights?from=HYD&to=DEL&date=2024-12-25&sortBy=price
+
+### New Search Endpoint (Better)
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "HYD",
+  "destination": "DEL",
+  "departureDate": "2024-12-25",
+  "sortBy": "price"
+}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagination Test - Airport Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+        .error { color: red; }
+        .success-text { color: green; }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Pagination Test - Airport Management</h1>
+    
+    <div class="container info">
+        <h2>Instructions</h2>
+        <p>This page demonstrates both the OLD format (with <code>?paginate=false</code>) and NEW format (with pagination).</p>
+        <p><strong>If your frontend shows "No data found":</strong> Use the OLD format by adding <code>?paginate=false</code> to your API calls.</p>
+    </div>
+
+    <div class="container">
+        <h2>Test 1: OLD Format (Backward Compatible)</h2>
+        <p>URL: <code>/api/Airports?paginate=false</code></p>
+        <button onclick="loadOldFormat()">Load Airports (Old Format)</button>
+        <div id="oldFormatResult"></div>
+    </div>
+
+    <div class="container">
+        <h2>Test 2: NEW Format (With Pagination)</h2>
+        <p>URL: <code>/api/Airports?page=1&pageSize=10</code></p>
+        <button onclick="loadNewFormat()">Load Airports (New Format)</button>
+        <div id="newFormatResult"></div>
+    </div>
+
+    <div class="container success">
+        <h2>✅ Quick Fix for Your Frontend</h2>
+        <p>Add <code>?paginate=false</code> to your API calls:</p>
+        <pre>
+// BEFORE (not working):
+const airports = await fetch('/api/Airports').then(r => r.json());
+
+// AFTER (works!):
+const airports = await fetch('/api/Airports?paginate=false').then(r => r.json());
+        </pre>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5003';
+        
+        async function loadOldFormat() {
+            const resultDiv = document.getElementById('oldFormatResult');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/Airports/public?paginate=false`);
+                const data = await response.json();
+                
+                if (Array.isArray(data)) {
+                    resultDiv.innerHTML = `
+                        <p class="success-text">✅ Success! Received array with ${data.length} airports</p>
+                        <h3>Response Format:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <h3>Airports Table:</h3>
+                        ${generateTable(data)}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Expected array but got: ${typeof data}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function loadNewFormat() {
+            const resultDiv = document.getElementById('newFormatResult');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/Airports/public?page=1&pageSize=10`);
+                const result = await response.json();
+                
+                if (result.data && result.pagination) {
+                    resultDiv.innerHTML = `
+                        <p class="success-text">✅ Success! Received paginated response</p>
+                        <h3>Pagination Info:</h3>
+                        <ul>
+                            <li>Current Page: ${result.pagination.currentPage}</li>
+                            <li>Page Size: ${result.pagination.pageSize}</li>
+                            <li>Total Count: ${result.pagination.totalCount}</li>
+                            <li>Total Pages: ${result.pagination.totalPages}</li>
+                        </ul>
+                        <h3>Response Format:</h3>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                        <h3>Airports Table:</h3>
+                        ${generateTable(result.data)}
+                        <p><strong>Note:</strong> Access data using <code>response.data</code></p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Expected paginated format but got something else</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        function generateTable(airports) {
+            if (!airports || airports.length === 0) {
+                return '<p>No airports found</p>';
+            }
+
+            let html = '<table><thead><tr>';
+            html += '<th>ID</th><th>Code</th><th>Name</th><th>City</th><th>Country</th>';
+            html += '</tr></thead><tbody>';
+
+            airports.forEach(airport => {
+                html += `<tr>
+                    <td>${airport.airportId}</td>
+                    <td>${airport.code}</td>
+                    <td>${airport.name}</td>
+                    <td>${airport.city}</td>
+                    <td>${airport.country}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            return html;
+        }
+
+        // Auto-load on page load
+        window.onload = () => {
+            console.log('Page loaded. Click buttons to test API formats.');
+        };
+    </script>
+</body>
+</html>

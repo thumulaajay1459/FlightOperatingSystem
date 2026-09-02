@@ -1,0 +1,85 @@
+<div class="chat-container">
+  <div class="chat-header">
+    <h2>🤖 AI Flight Assistant</h2>
+    <div class="header-actions">
+      <button class="btn-login" *ngIf="!isAuthenticated" (click)="goToLogin()">Login</button>
+      <button class="btn-secondary" *ngIf="isAuthenticated" (click)="toggleSessions()">
+        {{ showSessions ? 'Hide' : 'Show' }} Sessions
+      </button>
+      <button class="btn-primary" (click)="newChat()">New Chat</button>
+    </div>
+  </div>
+
+  <div class="chat-layout">
+    <div class="sessions-panel" *ngIf="showSessions && isAuthenticated">
+      <h3>Chat History</h3>
+      <div class="sessions-list">
+        <div *ngFor="let session of sessions" class="session-item" (click)="loadSessionHistory(session.sessionId)">
+          <div class="session-info">
+            <span class="session-date">{{ session.lastMessageAt | date:'short' }}</span>
+            <span class="session-count">{{ session.messageCount }} messages</span>
+          </div>
+          <button class="btn-delete" (click)="deleteSession(session.sessionId); $event.stopPropagation()">×</button>
+        </div>
+        <div *ngIf="sessions.length === 0" class="no-sessions">No chat history</div>
+      </div>
+    </div>
+
+    <div class="chat-main">
+      <div class="messages-container">
+        <div *ngIf="messages.length === 0" class="welcome-message">
+          <h3>👋 Welcome to AI Flight Assistant!</h3>
+          <p *ngIf="!isAuthenticated" class="guest-notice">
+            👤 You're browsing as a guest. Login to access your bookings and personal information.
+          </p>
+          <p>Ask me anything about:</p>
+          <ul>
+            <li>✈️ Available flights</li>
+            <li>💺 Seat availability</li>
+            <li>🛫 Routes and airports</li>
+            <li>💳 Payment information</li>
+            <li *ngIf="isAuthenticated">🎫 Your bookings</li>
+          </ul>
+        </div>
+
+        <div *ngFor="let msg of messages" class="message" [ngClass]="msg.role.toLowerCase()">
+          <div class="message-avatar">
+            {{ msg.role === 'User' ? '👤' : '🤖' }}
+          </div>
+          <div class="message-content">
+            <div class="message-header">
+              <strong>{{ msg.role }}</strong>
+              <span class="message-time">{{ msg.createdAt | date:'short' }}</span>
+            </div>
+            <div class="message-text">{{ msg.content }}</div>
+          </div>
+        </div>
+
+        <div *ngIf="isLoading" class="message assistant">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="typing-indicator">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-container">
+        <form (ngSubmit)="sendMessage()" class="message-form">
+          <input 
+            type="text" 
+            [(ngModel)]="userMessage" 
+            name="message"
+            placeholder="Ask me about flights, bookings, or anything else..."
+            [disabled]="isLoading"
+            class="message-input"
+          >
+          <button type="submit" [disabled]="!userMessage.trim() || isLoading" class="send-btn">
+            Send ✈️
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

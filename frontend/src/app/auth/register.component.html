@@ -1,0 +1,109 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>✈️ Flight Operation System</h1>
+      <h2>Register</h2>
+    </div>
+    
+    <form (ngSubmit)="register()" class="auth-form">
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+      
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input 
+            type="text" 
+            [(ngModel)]="registerData.firstName" 
+            name="firstName" 
+            placeholder="First name"
+            (blur)="validateField('firstName')"
+            [class.error]="fieldErrors.firstName"
+            required>
+          <span class="field-error" *ngIf="fieldErrors.firstName">{{ fieldErrors.firstName }}</span>
+        </div>
+        
+        <div class="form-group">
+          <label>Last Name</label>
+          <input 
+            type="text" 
+            [(ngModel)]="registerData.lastName" 
+            name="lastName" 
+            placeholder="Last name"
+            (blur)="validateField('lastName')"
+            [class.error]="fieldErrors.lastName"
+            required>
+          <span class="field-error" *ngIf="fieldErrors.lastName">{{ fieldErrors.lastName }}</span>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Email</label>
+        <input 
+          type="email" 
+          [(ngModel)]="registerData.email" 
+          name="email" 
+          placeholder="Enter your email"
+          (blur)="validateField('email')"
+          [class.error]="fieldErrors.email"
+          required>
+        <span class="field-error" *ngIf="fieldErrors.email">{{ fieldErrors.email }}</span>
+      </div>
+      
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-input">
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            [(ngModel)]="registerData.password" 
+            name="password" 
+            placeholder="Enter your password"
+            (blur)="validateField('password')"
+            [class.error]="fieldErrors.password"
+            required>
+          <button 
+            type="button" 
+            class="toggle-password" 
+            (click)="togglePasswordVisibility()">
+            {{ showPassword ? '👁️' : '👁️🗨️' }}
+          </button>
+        </div>
+        <span class="field-error" *ngIf="fieldErrors.password">{{ fieldErrors.password }}</span>
+      </div>
+      
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <div class="password-input">
+          <input 
+            [type]="showConfirmPassword ? 'text' : 'password'" 
+            [(ngModel)]="registerData.confirmPassword" 
+            name="confirmPassword" 
+            placeholder="Confirm your password"
+            (blur)="validateField('confirmPassword')"
+            [class.error]="fieldErrors.confirmPassword"
+            required>
+          <button 
+            type="button" 
+            class="toggle-password" 
+            (click)="toggleConfirmPasswordVisibility()">
+            {{ showConfirmPassword ? '👁️' : '👁️🗨️' }}
+          </button>
+        </div>
+        <span class="field-error" *ngIf="fieldErrors.confirmPassword">{{ fieldErrors.confirmPassword }}</span>
+      </div>
+      
+      <button type="submit" class="submit-btn" [disabled]="isLoading">
+        {{ isLoading ? 'Registering...' : 'Register' }}
+      </button>
+      
+      <div class="auth-footer">
+        <p>Already have an account? <a (click)="goToLogin()">Login here</a></p>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,135 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="logo">✈️ Flight Operation System</div>
+    <button class="login-btn" (click)="goToLogin()">Login</button>
+  </div>
+</nav>
+
+<main class="main-content">
+  <section class="hero">
+    <h1>Welcome to Flight Operation System</h1>
+    <p>Book your next journey with ease</p>
+  </section>
+
+  <section class="search-section">
+    <div class="search-container">
+      <h2>Search Flights</h2>
+      
+      <div class="trip-type-selector">
+        <label class="radio-label">
+          <input type="radio" [(ngModel)]="tripType" name="tripType" value="OneWay">
+          One Way
+        </label>
+        <label class="radio-label">
+          <input type="radio" [(ngModel)]="tripType" name="tripType" value="RoundTrip">
+          Round Trip
+        </label>
+      </div>
+      
+      <form (ngSubmit)="searchFlights()" class="search-form">
+        <div class="form-group">
+          <label>From</label>
+          <input type="text" [(ngModel)]="searchData.origin" name="origin" placeholder="City or Airport Code" required>
+        </div>
+        <div class="form-group">
+          <label>To</label>
+          <input type="text" [(ngModel)]="searchData.destination" name="destination" placeholder="City or Airport Code" required>
+        </div>
+        <div class="form-group">
+          <label>Departure Date</label>
+          <input type="date" [(ngModel)]="searchData.departureDate" name="departureDate" required>
+        </div>
+        <div class="form-group" *ngIf="tripType === 'RoundTrip'">
+          <label>Return Date</label>
+          <input type="date" [(ngModel)]="searchData.returnDate" name="returnDate" [required]="tripType === 'RoundTrip'">
+        </div>
+        
+        <div class="passengers-group">
+          <label>Passengers</label>
+          <div class="passenger-controls">
+            <div class="passenger-item">
+              <span>Adults</span>
+              <div class="counter">
+                <button type="button" (click)="passengers.adults = passengers.adults > 1 ? passengers.adults - 1 : 1">-</button>
+                <span>{{ passengers.adults }}</span>
+                <button type="button" (click)="passengers.adults = passengers.adults + 1">+</button>
+              </div>
+            </div>
+            <div class="passenger-item">
+              <span>Children (2-11)</span>
+              <div class="counter">
+                <button type="button" (click)="passengers.children = passengers.children > 0 ? passengers.children - 1 : 0">-</button>
+                <span>{{ passengers.children }}</span>
+                <button type="button" (click)="passengers.children = passengers.children + 1">+</button>
+              </div>
+            </div>
+            <div class="passenger-item">
+              <span>Infants (0-2)</span>
+              <div class="counter">
+                <button type="button" (click)="passengers.infants = passengers.infants > 0 ? passengers.infants - 1 : 0">-</button>
+                <span>{{ passengers.infants }}</span>
+                <button type="button" (click)="passengers.infants = passengers.infants + 1">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="search-btn">Search Flights</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="results-section" *ngIf="showResults">
+    <div class="results-container">
+      <h2>Outbound Flights</h2>
+      
+      <p *ngIf="isLoading">Searching flights...</p>
+      
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+      
+      <div *ngIf="!isLoading && flights.length === 0 && !errorMessage" class="no-results">
+        No flights found for your search.
+      </div>
+      
+      <div *ngFor="let flight of flights" class="flight-card">
+        <div class="flight-info">
+          <div class="flight-route">
+            {{ flight.originAirportCode }} → {{ flight.destinationAirportCode }}
+          </div>
+          <div class="flight-details">
+            Flight: {{ flight.flightNumber }} | 
+            Departure: {{ flight.departureTime | date:'short' }} | 
+            Arrival: {{ flight.arrivalTime | date:'short' }} | 
+            Available Seats: {{ flight.availableSeats }}
+          </div>
+        </div>
+        <div class="flight-price">
+          ${{ flight.price }}
+        </div>
+      </div>
+    </div>
+    
+    <div class="results-container" *ngIf="tripType === 'RoundTrip' && returnFlights.length > 0">
+      <h2>Return Flights</h2>
+      
+      <div *ngFor="let flight of returnFlights" class="flight-card">
+        <div class="flight-info">
+          <div class="flight-route">
+            {{ flight.originAirportCode }} → {{ flight.destinationAirportCode }}
+          </div>
+          <div class="flight-details">
+            Flight: {{ flight.flightNumber }} | 
+            Departure: {{ flight.departureTime | date:'short' }} | 
+            Arrival: {{ flight.arrivalTime | date:'short' }} | 
+            Available Seats: {{ flight.availableSeats }}
+          </div>
+        </div>
+        <div class="flight-price">
+          ${{ flight.price }}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

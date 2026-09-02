@@ -1,0 +1,245 @@
+### ========================================
+### USER-FRIENDLY FLIGHT SEARCH & BOOKING
+### ========================================
+
+@baseUrl = http://localhost:5000
+@token = YOUR_JWT_TOKEN_HERE
+
+### ========================================
+### STEP 1: SEARCH FLIGHTS (Location A to B with Date)
+### ========================================
+
+### Search flights from New York to London on Dec 25, 2024
+GET {{baseUrl}}/flights/search?from=New York&to=London&date=2024-12-25
+
+### Search flights from Mumbai to Dubai on Jan 15, 2025
+GET {{baseUrl}}/flights/search?from=Mumbai&to=Dubai&date=2025-01-15
+
+### Search flights using airport codes (JFK to LHR)
+GET {{baseUrl}}/flights/search?from=JFK&to=LHR&date=2024-12-25
+
+### Search flights from Delhi to Singapore
+GET {{baseUrl}}/flights/search?from=Delhi&to=Singapore&date=2025-02-01
+
+### ========================================
+### STEP 2: CALCULATE PRICE (with Adult/Child/Infant)
+### ========================================
+
+### Calculate price for 1 Adult + 1 Child + 1 Infant (One Way)
+POST {{baseUrl}}/flights/calculate-price
+Content-Type: application/json
+
+{
+  "flightId": 1,
+  "passengers": [
+    {
+      "passengerType": "Adult",
+      "seatClass": "Economy",
+      "seatNumber": "12A"
+    },
+    {
+      "passengerType": "Child",
+      "seatClass": "Economy",
+      "seatNumber": "12B"
+    },
+    {
+      "passengerType": "Infant",
+      "seatClass": "Economy",
+      "seatNumber": "12C"
+    }
+  ]
+}
+
+### Calculate price for Round Trip (2 Adults)
+POST {{baseUrl}}/flights/calculate-price
+Content-Type: application/json
+
+{
+  "flightId": 1,
+  "returnFlightId": 2,
+  "passengers": [
+    {
+      "passengerType": "Adult",
+      "seatClass": "Business",
+      "seatNumber": "1A"
+    },
+    {
+      "passengerType": "Adult",
+      "seatClass": "Business",
+      "seatNumber": "1B"
+    }
+  ]
+}
+
+### ========================================
+### STEP 3: CREATE BOOKING (One Way)
+### ========================================
+
+### Book One Way Flight - 1 Adult + 1 Child
+POST {{baseUrl}}/bookings/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "flightId": 1,
+  "bookingType": "OneWay",
+  "totalAmount": 15000,
+  "passengers": [
+    {
+      "fullName": "John Doe",
+      "age": 35,
+      "gender": "Male",
+      "passengerType": "Adult",
+      "passportNumber": "A12345678",
+      "seatNumber": "12A"
+    },
+    {
+      "fullName": "Jane Doe",
+      "age": 8,
+      "gender": "Female",
+      "passengerType": "Child",
+      "passportNumber": "A87654321",
+      "seatNumber": "12B"
+    }
+  ]
+}
+
+### ========================================
+### STEP 4: CREATE BOOKING (Round Trip)
+### ========================================
+
+### Book Round Trip - Family of 3 (2 Adults + 1 Child)
+POST {{baseUrl}}/bookings/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "flightId": 1,
+  "returnFlightId": 2,
+  "bookingType": "RoundTrip",
+  "totalAmount": 45000,
+  "passengers": [
+    {
+      "fullName": "John Smith",
+      "age": 40,
+      "gender": "Male",
+      "passengerType": "Adult",
+      "passportNumber": "B12345678",
+      "seatNumber": "5A"
+    },
+    {
+      "fullName": "Sarah Smith",
+      "age": 38,
+      "gender": "Female",
+      "passengerType": "Adult",
+      "passportNumber": "B23456789",
+      "seatNumber": "5B"
+    },
+    {
+      "fullName": "Emily Smith",
+      "age": 10,
+      "gender": "Female",
+      "passengerType": "Child",
+      "passportNumber": "B87654321",
+      "seatNumber": "5C"
+    }
+  ]
+}
+
+### Book Round Trip with Infant
+POST {{baseUrl}}/bookings/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "flightId": 1,
+  "returnFlightId": 2,
+  "bookingType": "RoundTrip",
+  "totalAmount": 35000,
+  "passengers": [
+    {
+      "fullName": "Michael Johnson",
+      "age": 32,
+      "gender": "Male",
+      "passengerType": "Adult",
+      "passportNumber": "C12345678",
+      "seatNumber": "8A"
+    },
+    {
+      "fullName": "Lisa Johnson",
+      "age": 30,
+      "gender": "Female",
+      "passengerType": "Adult",
+      "passportNumber": "C23456789",
+      "seatNumber": "8B"
+    },
+    {
+      "fullName": "Baby Johnson",
+      "age": 1,
+      "gender": "Male",
+      "passengerType": "Infant",
+      "passportNumber": "C11111111",
+      "seatNumber": "8C"
+    }
+  ]
+}
+
+### ========================================
+### STEP 5: VIEW BOOKINGS
+### ========================================
+
+### Get all my bookings (shows round trip info)
+GET {{baseUrl}}/bookings/my-bookings
+Authorization: Bearer {{token}}
+
+### Get specific booking details
+GET {{baseUrl}}/bookings/1
+Authorization: Bearer {{token}}
+
+### Download ticket PDF
+GET {{baseUrl}}/bookings/1/download-ticket
+Authorization: Bearer {{token}}
+
+### ========================================
+### COMPLETE USER FLOW EXAMPLE
+### ========================================
+
+# 1. User searches: "New York to London on Dec 25"
+#    GET /flights/search?from=New York&to=London&date=2024-12-25
+#
+# 2. User sees list of flights with:
+#    - Flight number, departure/arrival times
+#    - Origin and destination details
+#    - Aircraft info
+#    - Pricing for Economy, Business, First Class
+#    - Child and Infant discounts
+#
+# 3. User selects flight and calculates price:
+#    POST /flights/calculate-price
+#    - Specifies: 2 Adults, 1 Child, 1 Infant
+#    - Gets exact price breakdown
+#
+# 4. User books the flight:
+#    POST /bookings/create
+#    - Provides passenger details
+#    - Specifies passenger types (Adult/Child/Infant)
+#    - For round trip: includes returnFlightId
+#
+# 5. User receives:
+#    - Booking confirmation
+#    - PDF ticket via email
+#    - Can download ticket anytime
+
+### ========================================
+### PASSENGER TYPE DISCOUNTS
+### ========================================
+# Adult: Full price (100%)
+# Child (2-11 years): 25% discount (75% of adult price)
+# Infant (0-23 months): 90% discount (10% of adult price)
+
+### ========================================
+### BOOKING TYPES
+### ========================================
+# OneWay: Single flight from A to B
+# RoundTrip: Flight from A to B + return flight from B to A
+# MultiCity: Multiple flights (future feature)

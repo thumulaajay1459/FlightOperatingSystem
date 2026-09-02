@@ -1,0 +1,114 @@
+<div class="payment-container">
+  <!-- Success Screen -->
+  <div *ngIf="paymentSuccess" class="success-card">
+    <div class="success-animation">
+      <div class="checkmark-circle">
+        <div class="checkmark">✓</div>
+      </div>
+    </div>
+    <h1>🎉 Payment Successful!</h1>
+    <p class="success-message">Your booking has been confirmed</p>
+    <div class="success-details">
+      <p>📧 Confirmation email sent</p>
+      <p>🎫 Ticket opened in new tab</p>
+      <p>📥 Ticket downloaded automatically</p>
+    </div>
+    <div class="redirect-message">
+      <div class="spinner-small"></div>
+      <p>Redirecting to your bookings...</p>
+    </div>
+  </div>
+  
+  <!-- Payment Form -->
+  <div *ngIf="!paymentSuccess" class="payment-card">
+    <div class="header-section">
+      <div class="icon">💳</div>
+      <h1>Complete Your Payment</h1>
+      <p class="subtitle">Secure payment powered by Razorpay</p>
+    </div>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      <div class="error-icon">⚠️</div>
+      <div class="error-content">
+        <strong>Payment Issue</strong>
+        <p>{{ errorMessage }}</p>
+        <div class="error-actions">
+          <small>💡 Your booking (ID: {{ bookingId }}) is safe and can be completed anytime.</small>
+        </div>
+      </div>
+    </div>
+    
+    <div *ngIf="isLoading" class="loading-section">
+      <div class="spinner"></div>
+      <p>Loading booking details...</p>
+    </div>
+    
+    <div *ngIf="!isLoading && bookingDetails" class="booking-summary">
+      <h2>Booking Summary</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="label">Booking ID:</span>
+          <span class="value">{{ bookingId }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Flight:</span>
+          <span class="value">{{ bookingDetails.flightNumber }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Route:</span>
+          <span class="value">{{ bookingDetails.origin }} → {{ bookingDetails.destination }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Passengers:</span>
+          <span class="value">{{ bookingDetails.passengers?.length || 0 }}</span>
+        </div>
+      </div>
+      
+      <div class="price-breakdown">
+        <h3>Price Breakdown</h3>
+        <div class="price-item">
+          <span>Base Fare</span>
+          <span>₹{{ (amount * 0.85).toFixed(2) }}</span>
+        </div>
+        <div class="price-item">
+          <span>Taxes & Fees</span>
+          <span>₹{{ (amount * 0.12).toFixed(2) }}</span>
+        </div>
+        <div class="price-item">
+          <span>Service Fee</span>
+          <span>₹{{ (amount * 0.03).toFixed(2) }}</span>
+        </div>
+        <div class="price-total">
+          <span>Total Amount</span>
+          <span>₹{{ amount.toFixed(2) }}</span>
+        </div>
+      </div>
+      
+      <div class="payment-info">
+        <div class="info-icon">🔒</div>
+        <p>Your payment is secured with 256-bit SSL encryption</p>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="btn-secondary" (click)="goToDashboard()" [disabled]="paymentInProgress">
+          {{ errorMessage ? 'Go to My Bookings' : 'Cancel' }}
+        </button>
+        <button class="btn-primary" (click)="initiatePayment()" [disabled]="paymentInProgress || isLoading">
+          <span *ngIf="!paymentInProgress">{{ errorMessage ? 'Retry Payment' : 'Pay' }} ₹{{ amount.toFixed(2) }}</span>
+          <span *ngIf="paymentInProgress">Processing...</span>
+        </button>
+      </div>
+      
+      <div class="payment-methods">
+        <p class="methods-title">Accepted Payment Methods</p>
+        <div class="methods-icons">
+          <span>💳 Credit Card</span>
+          <span>💳 Debit Card</span>
+          <span>🏦 Net Banking</span>
+          <span>📱 UPI</span>
+          <span>👛 Wallets</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

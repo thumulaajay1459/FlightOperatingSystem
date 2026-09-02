@@ -1,0 +1,64 @@
+### Test Backward Compatibility - Quick Fix
+
+@baseUrl = http://localhost:5003
+@adminToken = your_admin_token_here
+
+###############################################
+# TEST OLD FORMAT (paginate=false)
+###############################################
+
+### Get Airports - Old Format (Array)
+GET {{baseUrl}}/api/Airports?paginate=false
+Authorization: Bearer {{adminToken}}
+
+### Get Aircraft - Old Format (Array)
+GET {{baseUrl}}/api/Aircraft?paginate=false
+Authorization: Bearer {{adminToken}}
+
+### Get Routes - Old Format (Array)
+GET {{baseUrl}}/api/Routes?paginate=false
+Authorization: Bearer {{adminToken}}
+
+### Get Public Airports - Old Format (Array)
+GET {{baseUrl}}/api/Airports/public?paginate=false
+
+###############################################
+# TEST NEW FORMAT (with pagination)
+###############################################
+
+### Get Airports - New Format (Paginated)
+GET {{baseUrl}}/api/Airports?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get Aircraft - New Format (Paginated)
+GET {{baseUrl}}/api/Aircraft?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get Routes - New Format (Paginated)
+GET {{baseUrl}}/api/Routes?page=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+### Get Public Airports - New Format (Paginated)
+GET {{baseUrl}}/api/Airports/public?page=1&pageSize=10
+
+###############################################
+# TEST DEFAULT (should use pagination)
+###############################################
+
+### Get Airports - Default (should be paginated)
+GET {{baseUrl}}/api/Airports
+Authorization: Bearer {{adminToken}}
+
+###############################################
+# BOOKINGS
+###############################################
+
+@userToken = your_user_token_here
+
+### Get My Bookings - Old Format
+GET http://localhost:5004/api/booking/my-bookings?paginate=false
+Authorization: Bearer {{userToken}}
+
+### Get My Bookings - New Format
+GET http://localhost:5004/api/booking/my-bookings?page=1&pageSize=10
+Authorization: Bearer {{userToken}}

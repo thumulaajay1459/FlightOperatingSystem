@@ -1,0 +1,415 @@
+### Flight Operation System - Backend Testing
+### Base URL: http://localhost:5000
+
+### ============================================
+### 1. AUTHENTICATION - Register Admin
+### ============================================
+POST http://localhost:5000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Admin",
+  "lastName": "User",
+  "email": "admin@test.com",
+  "password": "Admin@123",
+  "role": "Admin"
+}
+
+### ============================================
+### 2. AUTHENTICATION - Login Admin
+### ============================================
+POST http://localhost:5000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "Admin@123"
+}
+
+### Save the accessToken from response and use below
+@token = YOUR_TOKEN_HERE
+
+### ============================================
+### 3. ADMIN - Add Aircraft
+### ============================================
+POST http://localhost:5000/admin/aircraft
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "manufacturer": "Boeing",
+  "model": "737-800",
+  "totalSeats": 189
+}
+
+### ============================================
+### 4. ADMIN - Get All Aircraft
+### ============================================
+GET http://localhost:5000/admin/aircraft
+Authorization: Bearer {{token}}
+
+### ============================================
+### 5. ADMIN - Add Airports
+### ============================================
+POST http://localhost:5000/admin/airports
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "code": "DEL",
+  "name": "Indira Gandhi International Airport",
+  "city": "New Delhi",
+  "country": "India"
+}
+
+###
+POST http://localhost:5000/admin/airports
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "code": "BOM",
+  "name": "Chhatrapati Shivaji Maharaj International Airport",
+  "city": "Mumbai",
+  "country": "India"
+}
+
+### ============================================
+### 6. ADMIN - Get All Airports
+### ============================================
+GET http://localhost:5000/admin/airports
+Authorization: Bearer {{token}}
+
+### ============================================
+### 7. ADMIN - Add Route
+### ============================================
+POST http://localhost:5000/admin/routes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "originAirportId": 1,
+  "destinationAirportId": 2,
+  "distanceKm": 1400
+}
+
+### ============================================
+### 8. ADMIN - Get All Routes
+### ============================================
+GET http://localhost:5000/admin/routes
+Authorization: Bearer {{token}}
+
+### ============================================
+### 9. ADMIN - Add Flight
+### ============================================
+POST http://localhost:5000/admin/flights
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "flightNumber": "AI101",
+  "aircraftId": 1,
+  "routeId": 1,
+  "departureTime": "2025-02-01T10:00:00Z",
+  "arrivalTime": "2025-02-01T12:30:00Z",
+  "status": "Scheduled"
+}
+
+### ============================================
+### 10. ADMIN - Update Flight Pricing
+### ============================================
+PUT http://localhost:5000/flights/1/pricing
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "basePrice": 5000,
+  "economyPrice": 5000,
+  "premiumEconomyPrice": 8000,
+  "businessPrice": 15000,
+  "firstClassPrice": 25000,
+  "childDiscountPercent": 25,
+  "infantDiscountPercent": 90
+}
+
+### ============================================
+### 11. PUBLIC - Search Flights
+### ============================================
+GET http://localhost:5000/flights/search?flightNumber=AI101
+
+### ============================================
+### 12. PUBLIC - Get All Flights (with pagination)
+### ============================================
+GET http://localhost:5000/flights?page=1&pageSize=10
+
+### ============================================
+### 13. PUBLIC - Get Flight by ID
+### ============================================
+GET http://localhost:5000/flights/1
+
+### ============================================
+### 14. PUBLIC - Get Available Seats
+### ============================================
+GET http://localhost:5000/flights/available-seats/1
+
+### ============================================
+### 15. PUBLIC - Get Seat Map
+### ============================================
+GET http://localhost:5000/seats/flight/1/seat-map
+
+### ============================================
+### 16. ADMIN - Bulk Create Seats for Aircraft
+### ============================================
+POST http://localhost:5000/seats/bulk-create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "aircraftId": 1,
+  "firstClassRows": 2,
+  "businessRows": 4,
+  "premiumEconomyRows": 5,
+  "economyRows": 20,
+  "columns": ["A", "B", "C", "D", "E", "F"],
+  "windowColumns": ["A", "F"],
+  "aisleColumns": ["C", "D"],
+  "exitRows": [10, 20]
+}
+
+### ============================================
+### 17. USER - Register Regular User
+### ============================================
+POST http://localhost:5000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@test.com",
+  "password": "User@123",
+  "role": "User"
+}
+
+### ============================================
+### 18. USER - Login
+### ============================================
+POST http://localhost:5000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@test.com",
+  "password": "User@123"
+}
+
+### Save user token
+@userToken = YOUR_USER_TOKEN_HERE
+
+### ============================================
+### 19. USER - Get Current User Profile
+### ============================================
+GET http://localhost:5000/auth/me
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 20. USER - Create Travel Profile
+### ============================================
+POST http://localhost:5000/profile
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "fullName": "John Doe",
+  "dateOfBirth": "1990-01-15",
+  "gender": "Male",
+  "passportNumber": "P1234567",
+  "nationality": "Indian",
+  "email": "john@test.com",
+  "phone": "+919876543210",
+  "address": "123 Main St, Mumbai"
+}
+
+### ============================================
+### 21. USER - Get Profile
+### ============================================
+GET http://localhost:5000/profile
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 22. USER - Calculate Flight Price
+### ============================================
+POST http://localhost:5000/flights/calculate-price
+Content-Type: application/json
+
+{
+  "flightId": 1,
+  "passengers": [
+    {
+      "passengerType": "Adult",
+      "seatClass": "Economy",
+      "seatNumber": "12A"
+    },
+    {
+      "passengerType": "Child",
+      "seatClass": "Economy",
+      "seatNumber": "12B"
+    }
+  ]
+}
+
+### ============================================
+### 23. USER - Block Seats
+### ============================================
+POST http://localhost:5000/seats/block
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "flightId": 1,
+  "seatNumbers": ["12A", "12B"],
+  "blockDurationMinutes": 10
+}
+
+### ============================================
+### 24. USER - Create Booking
+### ============================================
+POST http://localhost:5000/bookings/create
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "flightId": 1,
+  "totalAmount": 7875,
+  "useProfileAsPassenger": false,
+  "passengers": [
+    {
+      "fullName": "John Doe",
+      "age": 35,
+      "gender": "Male",
+      "passportNumber": "P1234567",
+      "seatNumber": "12A"
+    },
+    {
+      "fullName": "Jane Doe",
+      "age": 8,
+      "gender": "Female",
+      "passportNumber": "P7654321",
+      "seatNumber": "12B"
+    }
+  ]
+}
+
+### ============================================
+### 25. USER - Get My Bookings
+### ============================================
+GET http://localhost:5000/bookings/my-bookings
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 26. USER - Get Booking by ID
+### ============================================
+GET http://localhost:5000/bookings/1
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 27. USER - Get Ticket Details
+### ============================================
+GET http://localhost:5000/bookings/1/ticket
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 28. USER - Download PDF Ticket
+### ============================================
+GET http://localhost:5000/bookings/1/download-ticket
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 29. USER - Resend Ticket Email
+### ============================================
+POST http://localhost:5000/bookings/1/resend-ticket
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 30. USER - Cancel Booking
+### ============================================
+POST http://localhost:5000/bookings/cancel?id=1
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 31. ADMIN - Get All Users (with pagination)
+### ============================================
+GET http://localhost:5000/admin/users?page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+### ============================================
+### 32. ADMIN - Get All Bookings (with pagination)
+### ============================================
+GET http://localhost:5000/bookings/all?page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+### ============================================
+### 33. ADMIN - Get Bookings by Flight
+### ============================================
+GET http://localhost:5000/bookings/by-flight/1
+Authorization: Bearer {{token}}
+
+### ============================================
+### 34. ADMIN - Dashboard Stats
+### ============================================
+GET http://localhost:5000/admin/dashboard/stats
+Authorization: Bearer {{token}}
+
+### ============================================
+### 35. ADMIN - Revenue Report
+### ============================================
+GET http://localhost:5000/admin/reports/revenue?from=2025-01-01&to=2025-12-31
+Authorization: Bearer {{token}}
+
+### ============================================
+### 36. ADMIN - Popular Routes Report
+### ============================================
+GET http://localhost:5000/admin/reports/popular-routes?top=5
+Authorization: Bearer {{token}}
+
+### ============================================
+### 37. PAYMENT - Create Payment Order
+### ============================================
+POST http://localhost:5000/payments/create-order
+Content-Type: application/json
+Authorization: Bearer {{userToken}}
+
+{
+  "bookingId": "BK-20250201-ABC123",
+  "flightId": "1",
+  "flightNumber": "AI101",
+  "origin": "New Delhi",
+  "destination": "Mumbai",
+  "travelDate": "2025-02-01T10:00:00Z",
+  "passengerId": "1",
+  "passengerName": "John Doe",
+  "email": "john@test.com",
+  "phone": "+919876543210",
+  "seatNumber": "12A",
+  "cabinClass": "Economy",
+  "baseFare": 5000,
+  "taxAmount": 900,
+  "serviceFee": 100,
+  "currency": "INR"
+}
+
+### ============================================
+### 38. PAYMENT - Get Payment by ID
+### ============================================
+GET http://localhost:5000/payments/{paymentId}
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 39. PAYMENT - Get Payments by Booking
+### ============================================
+GET http://localhost:5000/payments/booking/BK-20250201-ABC123
+Authorization: Bearer {{userToken}}
+
+### ============================================
+### 40. ADMIN - Get All Payments
+### ============================================
+GET http://localhost:5000/payments/all
+Authorization: Bearer {{token}}

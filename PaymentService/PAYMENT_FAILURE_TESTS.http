@@ -1,0 +1,57 @@
+### Payment Failure Tests
+
+@baseUrl = http://localhost:5000
+@token = YOUR_JWT_TOKEN_HERE
+@paymentId = YOUR_PAYMENT_ID_HERE
+
+### 1. Create Order (Normal Flow)
+POST {{baseUrl}}/payments/create-order
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "bookingId": "BK123456",
+  "flightId": "1",
+  "flightNumber": "AI101",
+  "origin": "BOM",
+  "destination": "BLR",
+  "travelDate": "2025-01-20T10:00:00Z",
+  "passengerId": "user123",
+  "passengerName": "John Doe",
+  "email": "john@example.com",
+  "phone": "+919876543210",
+  "seatNumber": "12A",
+  "cabinClass": "Economy",
+  "baseFare": 5000,
+  "taxAmount": 500,
+  "serviceFee": 100,
+  "currency": "INR"
+}
+
+### 2. User Exits Without Payment - Mark as Failed
+POST {{baseUrl}}/payments/fail
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "paymentId": "{{paymentId}}",
+  "reason": "User exited without payment"
+}
+
+### 3. Check Payment Status
+GET {{baseUrl}}/payments/{{paymentId}}
+Authorization: Bearer {{token}}
+
+### 4. Get All Payments (Admin)
+GET {{baseUrl}}/payments/all?page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+### 5. Get User Payments
+GET {{baseUrl}}/payments/user/user123?page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+### Notes:
+# - Payments in "Pending" or "OrderCreated" status will auto-expire after 15 minutes
+# - Background service runs every 5 minutes to check for expired payments
+# - Failed payments will have status "Failed" with reason "Payment expired - User did not complete payment"
+# - Manual failure can be triggered using /payments/fail endpoint

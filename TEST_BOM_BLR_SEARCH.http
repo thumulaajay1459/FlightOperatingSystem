@@ -1,0 +1,173 @@
+### Test BOM to BLR Search
+
+@baseUrl = http://localhost:5003
+@gatewayUrl = http://localhost:5000
+
+###############################################
+# 1. VERIFY AIRPORTS EXIST
+###############################################
+
+### Check if BOM airport exists
+GET {{baseUrl}}/api/search/airports?q=BOM
+
+### Check if BLR airport exists
+GET {{baseUrl}}/api/search/airports?q=BLR
+
+### Check Mumbai
+GET {{baseUrl}}/api/search/airports?q=Mumbai
+
+### Check Bangalore
+GET {{baseUrl}}/api/search/airports?q=Bangalore
+
+###############################################
+# 2. TEST SEARCH (Direct to FlightService)
+###############################################
+
+### Search BOM to BLR (May 14, 2026)
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "BOM",
+  "destination": "BLR",
+  "departureDate": "2026-05-14",
+  "adults": 1,
+  "sortBy": "price"
+}
+
+### Search with city names
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "Mumbai",
+  "destination": "Bangalore",
+  "departureDate": "2026-05-14",
+  "adults": 1,
+  "sortBy": "price"
+}
+
+### Search with lowercase
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "bom",
+  "destination": "blr",
+  "departureDate": "2026-05-14",
+  "adults": 1,
+  "sortBy": "price"
+}
+
+###############################################
+# 3. TEST VIA API GATEWAY
+###############################################
+
+### Search via Gateway
+POST {{gatewayUrl}}/search/flights
+Content-Type: application/json
+
+{
+  "origin": "BOM",
+  "destination": "BLR",
+  "departureDate": "2026-05-14",
+  "adults": 1,
+  "sortBy": "price"
+}
+
+###############################################
+# 4. TEST WITH FILTERS
+###############################################
+
+### Morning flights only
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "BOM",
+  "destination": "BLR",
+  "departureDate": "2026-05-14",
+  "adults": 1,
+  "timePreference": "morning",
+  "sortBy": "departure"
+}
+
+### Afternoon flights only
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "BOM",
+  "destination": "BLR",
+  "departureDate": "2026-05-14",
+  "adults": 1,
+  "timePreference": "afternoon",
+  "sortBy": "departure"
+}
+
+### Evening flights only
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "BOM",
+  "destination": "BLR",
+  "departureDate": "2026-05-14",
+  "adults": 1,
+  "timePreference": "evening",
+  "sortBy": "departure"
+}
+
+### Price filter (max 5000)
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "BOM",
+  "destination": "BLR",
+  "departureDate": "2026-05-14",
+  "adults": 1,
+  "maxPrice": 5000,
+  "sortBy": "price"
+}
+
+###############################################
+# 5. TEST ROUND TRIP
+###############################################
+
+### Round trip BOM-BLR-BOM
+POST {{baseUrl}}/api/search/flights
+Content-Type: application/json
+
+{
+  "origin": "BOM",
+  "destination": "BLR",
+  "departureDate": "2026-05-14",
+  "returnDate": "2026-05-18",
+  "adults": 2,
+  "children": 1,
+  "sortBy": "price"
+}
+
+###############################################
+# 6. TEST ALTERNATE DATES
+###############################################
+
+### Get airport IDs first
+GET {{baseUrl}}/api/Airports
+
+### Then test alternates (replace IDs with actual values)
+# GET {{baseUrl}}/api/search/alternates?originId=1&destId=2&date=2026-05-14
+
+###############################################
+# 7. VERIFY DATABASE DIRECTLY
+###############################################
+
+### Get all airports
+GET {{baseUrl}}/api/Airports
+
+### Get all flights
+GET {{baseUrl}}/api/ScheduledFlights?page=1&pageSize=50
+
+### Search using old endpoint (for comparison)
+GET {{baseUrl}}/api/ScheduledFlights/search-flights?from=BOM&to=BLR&date=2026-05-14&sortBy=price
